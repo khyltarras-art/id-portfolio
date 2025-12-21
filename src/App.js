@@ -10,43 +10,28 @@ useGLTF.preload('https://raw.githubusercontent.com/khyltarras-art/id-des/refs/he
 useTexture.preload('https://raw.githubusercontent.com/khyltarras-art/id-des/refs/heads/main/band.png')
 
 export default function App() {
-  // 1. Check if screen is narrow (Mobile)
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 800)
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 800)
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
-  // 2. Set positions based on device
-  const bandPosition = isMobile ? [0, 4, 0] : [3, 4, 0]     // Mobile: Center | Desktop: Right
-  const textPosition = isMobile ? [0, 0, -2] : [-4, 0, -5]  // Mobile: Behind Card | Desktop: Left side
-  const textSize = isMobile ? 1.5 : 3                       // Mobile: Smaller font
-
   return (
     <Canvas camera={{ position: [0, 0, 13], fov: 25 }}>
       <ambientLight intensity={Math.PI} />
 
-      {/* --- RESPONSIVE TEXT --- */}
+      {/* --- TEXT LOCKED TO CENTER (Behind Card) --- */}
       <Text
-        position={textPosition}
-        fontSize={textSize}
+        position={[0, 0, -2]}     // Always Center, Always Behind
+        fontSize={1.5}            // Smaller font to fit phone screens
         color="white"
         anchorX="center"
         anchorY="middle"
         textAlign="center"
-        maxWidth={isMobile ? 3 : 10} // Prevents text from going off-screen on phone
+        maxWidth={3}              // Forces text to wrap if it gets too wide
         lineHeight={1}
         font="/font.ttf"
       >
         Hi I'm{"\n"}Khyl
       </Text>
-      {/* ----------------------- */}
+      {/* ----------------------------------------- */}
 
       <Physics interpolate gravity={[0, -40, 0]} timeStep={1 / 60}>
-        {/* Pass the dynamic position to the Band */}
-        <Band position={bandPosition} />
+        <Band />
       </Physics>
 
       <Environment background blur={0.75}>
@@ -60,8 +45,7 @@ export default function App() {
   )
 }
 
-// 3. Updated Band to accept 'position' prop
-function Band({ maxSpeed = 50, minSpeed = 10, position }) {
+function Band({ maxSpeed = 50, minSpeed = 10 }) {
   const band = useRef(), fixed = useRef(), j1 = useRef(), j2 = useRef(), j3 = useRef(), card = useRef() // prettier-ignore
   const vec = new THREE.Vector3(), ang = new THREE.Vector3(), rot = new THREE.Vector3(), dir = new THREE.Vector3() // prettier-ignore
   const segmentProps = { type: 'dynamic', canSleep: true, colliders: false, angularDamping: 2, linearDamping: 2 }
@@ -117,7 +101,7 @@ function Band({ maxSpeed = 50, minSpeed = 10, position }) {
 
   return (
     <>
-      <group position={position}>
+      <group position={[0, 4, 0]}> {/* LOCKED TO CENTER */}
         <RigidBody ref={fixed} {...segmentProps} type="fixed" />
         <RigidBody position={[0.5, 0, 0]} ref={j1} {...segmentProps}>
           <BallCollider args={[0.1]} />
