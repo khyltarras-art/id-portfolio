@@ -17,12 +17,12 @@ export default function App() {
       
       {/* --- ADDED TEXT START --- */}
       <Text
-        position={[-4, 0, -5]}   // Left: -4, Back: -5
+        position={[0, 0, 0]}   // Left: -4, Back: -5
         fontSize={1.5}
         color="white"
         anchorX="center"
         anchorY="middle"
-        font="/font.ttf" 
+        font="/BadFontPixel.ttf" 
       >
         Hi I'm{"\n"}Khyl
       </Text>
