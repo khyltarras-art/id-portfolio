@@ -17,7 +17,7 @@ export default function App() {
       
       {/* --- ADDED TEXT START --- */}
       <Text
-        position={[0, 0, 0]}   // Left: -4, Back: -5
+        position={[0, 0, -10]}   // Left: -4, Back: -5
         fontSize={1.5}
         color="white"
         anchorX="center"
