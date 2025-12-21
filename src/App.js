@@ -14,16 +14,6 @@ export default function App() {
   return (
     <Canvas camera={{ position: [0, 0, 13], fov: 25 }}>
       <ambientLight intensity={Math.PI} />
-      <Text
-          position={[-4, 0, -5]}  /* X=-4 (Left), Y=0 (Center), Z=-5 (Back) */
-          fontSize={3}
-          color="white"
-          anchorX="center"
-          anchorY="middle"
-          // font="/font.ttf"
-        >
-          Hi I'm{"\n"}Khyl
-        </Text>
       <Physics interpolate gravity={[0, -40, 0]} timeStep={1 / 60}>
         <Band />
       </Physics>
@@ -128,5 +118,5 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
       </mesh>
     </>
   )
-
+  
 }
