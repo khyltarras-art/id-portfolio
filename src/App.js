@@ -1,7 +1,8 @@
 import * as THREE from 'three'
 import { useEffect, useRef, useState } from 'react'
 import { Canvas, extend, useThree, useFrame } from '@react-three/fiber'
-import { useGLTF, useTexture, Environment, Lightformer } from '@react-three/drei'
+// I added 'Text' to this import line:
+import { useGLTF, useTexture, Environment, Lightformer, Text } from '@react-three/drei'
 import { BallCollider, CuboidCollider, Physics, RigidBody, useRopeJoint, useSphericalJoint } from '@react-three/rapier'
 import { MeshLineGeometry, MeshLineMaterial } from 'meshline'
 
@@ -10,10 +11,23 @@ useGLTF.preload('https://raw.githubusercontent.com/khyltarras-art/id-des/refs/he
 useTexture.preload('https://raw.githubusercontent.com/khyltarras-art/id-des/refs/heads/main/band.png')
 
 export default function App() {
- 
   return (
     <Canvas camera={{ position: [0, 0, 13], fov: 25 }}>
       <ambientLight intensity={Math.PI} />
+      
+      {/* --- ADDED TEXT START --- */}
+      <Text
+        position={[-4, 0, -5]}   // Left: -4, Back: -5
+        fontSize={3}
+        color="white"
+        anchorX="center"
+        anchorY="middle"
+        // font="/Poppins-Bold.ttf" // Uncomment this if you add a font file to public folder
+      >
+        Hi I'm{"\n"}Khyl
+      </Text>
+      {/* --- ADDED TEXT END --- */}
+
       <Physics interpolate gravity={[0, -40, 0]} timeStep={1 / 60}>
         <Band />
       </Physics>
