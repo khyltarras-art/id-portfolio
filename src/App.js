@@ -4,6 +4,7 @@ import { Canvas, extend, useThree, useFrame } from '@react-three/fiber'
 import { useGLTF, useTexture, Environment, Lightformer } from '@react-three/drei'
 import { BallCollider, CuboidCollider, Physics, RigidBody, useRopeJoint, useSphericalJoint } from '@react-three/rapier'
 import { MeshLineGeometry, MeshLineMaterial } from 'meshline'
+import { useGLTF, useTexture, Environment, Lightformer, Text } from '@react-three/drei'
 
 extend({ MeshLineGeometry, MeshLineMaterial })
 useGLTF.preload('https://raw.githubusercontent.com/khyltarras-art/id-des/refs/heads/main/Card.glb')
@@ -14,6 +15,16 @@ export default function App() {
   return (
     <Canvas camera={{ position: [0, 0, 13], fov: 25 }}>
       <ambientLight intensity={Math.PI} />
+      <Text
+          position={[-4, 0, -5]}  /* X=-4 (Left), Y=0 (Center), Z=-5 (Back) */
+          fontSize={3}
+          color="white"
+          anchorX="center"
+          anchorY="middle"
+          // font="/font.ttf"
+        >
+          Hi I'm{"\n"}Khyl
+        </Text>
       <Physics interpolate gravity={[0, -40, 0]} timeStep={1 / 60}>
         <Band />
       </Physics>
@@ -118,4 +129,5 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
       </mesh>
     </>
   )
+
 }
