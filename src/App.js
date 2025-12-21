@@ -1,7 +1,6 @@
 import * as THREE from 'three'
 import { useEffect, useRef, useState } from 'react'
 import { Canvas, extend, useThree, useFrame } from '@react-three/fiber'
-// I added 'Text' to this import line:
 import { useGLTF, useTexture, Environment, Lightformer, Text } from '@react-three/drei'
 import { BallCollider, CuboidCollider, Physics, RigidBody, useRopeJoint, useSphericalJoint } from '@react-three/rapier'
 import { MeshLineGeometry, MeshLineMaterial } from 'meshline'
@@ -11,25 +10,43 @@ useGLTF.preload('https://raw.githubusercontent.com/khyltarras-art/id-des/refs/he
 useTexture.preload('https://raw.githubusercontent.com/khyltarras-art/id-des/refs/heads/main/band.png')
 
 export default function App() {
+  // 1. Check if screen is narrow (Mobile)
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 800)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 800)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  // 2. Set positions based on device
+  const bandPosition = isMobile ? [0, 4, 0] : [3, 4, 0]     // Mobile: Center | Desktop: Right
+  const textPosition = isMobile ? [0, 0, -2] : [-4, 0, -5]  // Mobile: Behind Card | Desktop: Left side
+  const textSize = isMobile ? 1.5 : 3                       // Mobile: Smaller font
+
   return (
     <Canvas camera={{ position: [0, 0, 13], fov: 25 }}>
       <ambientLight intensity={Math.PI} />
-      
-      {/* --- ADDED TEXT START --- */}
+
+      {/* --- RESPONSIVE TEXT --- */}
       <Text
-        position={[-4, 0, -5]}   // Left: -4, Back: -5
-        fontSize={1}
+        position={textPosition}
+        fontSize={textSize}
         color="white"
         anchorX="center"
         anchorY="middle"
-        font="/font.ttf" 
+        textAlign="center"
+        maxWidth={isMobile ? 3 : 10} // Prevents text from going off-screen on phone
+        lineHeight={1}
+        font="/font.ttf"
       >
         Hi I'm{"\n"}Khyl
       </Text>
-      {/* --- ADDED TEXT END --- */}
+      {/* ----------------------- */}
 
       <Physics interpolate gravity={[0, -40, 0]} timeStep={1 / 60}>
-        <Band />
+        {/* Pass the dynamic position to the Band */}
+        <Band position={bandPosition} />
       </Physics>
 
       <Environment background blur={0.75}>
@@ -43,7 +60,8 @@ export default function App() {
   )
 }
 
-function Band({ maxSpeed = 50, minSpeed = 10 }) {
+// 3. Updated Band to accept 'position' prop
+function Band({ maxSpeed = 50, minSpeed = 10, position }) {
   const band = useRef(), fixed = useRef(), j1 = useRef(), j2 = useRef(), j3 = useRef(), card = useRef() // prettier-ignore
   const vec = new THREE.Vector3(), ang = new THREE.Vector3(), rot = new THREE.Vector3(), dir = new THREE.Vector3() // prettier-ignore
   const segmentProps = { type: 'dynamic', canSleep: true, colliders: false, angularDamping: 2, linearDamping: 2 }
@@ -99,7 +117,7 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
 
   return (
     <>
-      <group position={[3, 4, 0]}>
+      <group position={position}>
         <RigidBody ref={fixed} {...segmentProps} type="fixed" />
         <RigidBody position={[0.5, 0, 0]} ref={j1} {...segmentProps}>
           <BallCollider args={[0.1]} />
