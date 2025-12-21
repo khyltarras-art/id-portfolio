@@ -22,9 +22,9 @@ export default function App() {
         color="white"
         anchorX="center"
         anchorY="middle"
-        font="/font.ttf" 
+        font="/fontt.ttf" 
       >
-        Hi I'm{"\n"}Khyl
+        PORTFOLIO
       </Text>
       {/* --- ADDED TEXT END --- */}
 
