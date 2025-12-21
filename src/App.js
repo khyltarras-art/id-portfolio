@@ -18,7 +18,7 @@ export default function App() {
       {/* --- ADDED TEXT START --- */}
       <Text
         position={[-4, 0, -5]}   // Left: -4, Back: -5
-        fontSize={3}
+        fontSize={1}
         color="white"
         anchorX="center"
         anchorY="middle"
@@ -31,6 +31,7 @@ export default function App() {
       <Physics interpolate gravity={[0, -40, 0]} timeStep={1 / 60}>
         <Band />
       </Physics>
+
       <Environment background blur={0.75}>
         <color attach="background" args={['black']} />
         <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
