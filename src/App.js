@@ -118,5 +118,4 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
       </mesh>
     </>
   )
-  
 }
