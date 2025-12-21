@@ -19,7 +19,7 @@ export default function App() {
       <Text
         position={[0, 0, -10]}   // Left: -4, Back: -5
         fontSize={5}
-        color="white"
+        color="#fc568d"
         anchorX="center"
         anchorY="middle"
         font="/Postertoaster.woff" 
