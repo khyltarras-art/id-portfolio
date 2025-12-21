@@ -13,4 +13,11 @@ body,
 
 body {
   background-color: #111;
+  /* Optional: prevents overscroll bounce effect on Mac/iOS for a cleaner feel */
+  overscroll-behavior: none; 
+}
+
+/* Recommended: Removes potential whitespace gap under the 3D canvas */
+canvas {
+  display: block;
 }
