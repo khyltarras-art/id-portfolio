@@ -22,7 +22,7 @@ export default function App() {
         color="white"
         anchorX="center"
         anchorY="middle"
-        font="/BadFontPixel.ttf" 
+        font="/font.ttf" 
       >
         Hi I'm{"\n"}Khyl
       </Text>
