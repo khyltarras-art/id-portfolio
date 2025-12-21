@@ -1,11 +1,10 @@
 import * as THREE from 'three'
 import { useEffect, useRef, useState } from 'react'
 import { Canvas, extend, useThree, useFrame } from '@react-three/fiber'
+// I added 'Text' to this import line:
 import { useGLTF, useTexture, Environment, Lightformer, Text } from '@react-three/drei'
 import { BallCollider, CuboidCollider, Physics, RigidBody, useRopeJoint, useSphericalJoint } from '@react-three/rapier'
 import { MeshLineGeometry, MeshLineMaterial } from 'meshline'
-// IMPORT THE CARDS COMPONENT
-import { DragCards } from './DragCards' 
 
 extend({ MeshLineGeometry, MeshLineMaterial })
 useGLTF.preload('https://raw.githubusercontent.com/khyltarras-art/id-des/refs/heads/main/Card.glb')
@@ -13,58 +12,34 @@ useTexture.preload('https://raw.githubusercontent.com/khyltarras-art/id-des/refs
 
 export default function App() {
   return (
-    <div className="w-full bg-black">
+    <Canvas camera={{ position: [0, 0, 13], fov: 25 }}>
+      <ambientLight intensity={Math.PI} />
       
-      {/* --- SECTION 1: 3D HERO --- */}
-      <div style={{ height: '100vh', width: '100%', position: 'relative' }}>
-        <Canvas camera={{ position: [0, 0, 13], fov: 25 }}>
-          <ambientLight intensity={Math.PI} />
-          
-          <ResponsiveText />
+      {/* --- ADDED TEXT START --- */}
+      <Text
+        position={[-4, 0, -5]}   // Left: -4, Back: -5
+        fontSize={1}
+        color="white"
+        anchorX="center"
+        anchorY="middle"
+        font="/font.ttf" 
+      >
+        Hi I'm{"\n"}Khyl
+      </Text>
+      {/* --- ADDED TEXT END --- */}
 
-          <Physics interpolate gravity={[0, -40, 0]} timeStep={1 / 60}>
-            <Band />
-          </Physics>
+      <Physics interpolate gravity={[0, -40, 0]} timeStep={1 / 60}>
+        <Band />
+      </Physics>
 
-          <Environment background blur={0.75}>
-            <color attach="background" args={['black']} />
-            <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
-            <Lightformer intensity={3} color="white" position={[-1, -1, 1]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
-            <Lightformer intensity={3} color="white" position={[1, 1, 1]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
-            <Lightformer intensity={10} color="white" position={[-10, 0, 14]} rotation={[0, Math.PI / 2, Math.PI / 3]} scale={[100, 10, 1]} />
-          </Environment>
-        </Canvas>
-      </div>
-
-      {/* --- SECTION 2: DRAGGABLE CARDS --- */}
-      <DragCards />
-
-    </div>
-  )
-}
-
-// --- HELPER COMPONENTS ---
-
-function ResponsiveText() {
-  const { viewport } = useThree()
-  // Breakpoint for mobile devices
-  const isMobile = viewport.width < 5 
-
-  return (
-    <Text
-      // Adjust position: [x, y, z]
-      position={isMobile ? [0, 2, -5] : [-4, 0, -5]} 
-      fontSize={isMobile ? 1.5 : 1}
-      color="white"
-      anchorX="center"
-      anchorY="middle"
-      font="/font.ttf" // Ensure 'font.ttf' is in your /public folder!
-      maxWidth={isMobile ? viewport.width * 0.9 : 10}
-      textAlign="center"
-      lineHeight={1}
-    >
-      Hi I'm{"\n"}Khyl
-    </Text>
+      <Environment background blur={0.75}>
+        <color attach="background" args={['black']} />
+        <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
+        <Lightformer intensity={3} color="white" position={[-1, -1, 1]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
+        <Lightformer intensity={3} color="white" position={[1, 1, 1]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
+        <Lightformer intensity={10} color="white" position={[-10, 0, 14]} rotation={[0, Math.PI / 2, Math.PI / 3]} scale={[100, 10, 1]} />
+      </Environment>
+    </Canvas>
   )
 }
 
