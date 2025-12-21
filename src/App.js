@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { useEffect, useRef, useState } from 'react'
 import { Canvas, extend, useThree, useFrame } from '@react-three/fiber'
+// I added 'Text' to this import line:
 import { useGLTF, useTexture, Environment, Lightformer, Text } from '@react-three/drei'
 import { BallCollider, CuboidCollider, Physics, RigidBody, useRopeJoint, useSphericalJoint } from '@react-three/rapier'
 import { MeshLineGeometry, MeshLineMaterial } from 'meshline'
@@ -13,22 +14,19 @@ export default function App() {
   return (
     <Canvas camera={{ position: [0, 0, 13], fov: 25 }}>
       <ambientLight intensity={Math.PI} />
-
-      {/* --- TEXT LOCKED TO CENTER (Behind Card) --- */}
+      
+      {/* --- ADDED TEXT START --- */}
       <Text
-        position={[0, 0, -2]}     // Always Center, Always Behind
-        fontSize={1.5}            // Smaller font to fit phone screens
+        position={[-4, 0, -5]}   // Left: -4, Back: -5
+        fontSize={1}
         color="white"
         anchorX="center"
         anchorY="middle"
-        textAlign="center"
-        maxWidth={3}              // Forces text to wrap if it gets too wide
-        lineHeight={1}
-        font="/font.ttf"
+        font="/font.ttf" 
       >
         Hi I'm{"\n"}Khyl
       </Text>
-      {/* ----------------------------------------- */}
+      {/* --- ADDED TEXT END --- */}
 
       <Physics interpolate gravity={[0, -40, 0]} timeStep={1 / 60}>
         <Band />
@@ -101,7 +99,7 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
 
   return (
     <>
-      <group position={[0, 4, 0]}> {/* LOCKED TO CENTER */}
+      <group position={[3, 4, 0]}>
         <RigidBody ref={fixed} {...segmentProps} type="fixed" />
         <RigidBody position={[0.5, 0, 0]} ref={j1} {...segmentProps}>
           <BallCollider args={[0.1]} />
