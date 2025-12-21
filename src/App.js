@@ -22,7 +22,7 @@ export default function App() {
         color="white"
         anchorX="center"
         anchorY="middle"
-        // font="/font.ttf" // Uncomment this if you add a font file to public folder
+        font="/font.ttf" 
       >
         Hi I'm{"\n"}Khyl
       </Text>
