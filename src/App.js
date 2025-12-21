@@ -22,7 +22,7 @@ export default function App() {
         color="white"
         anchorX="center"
         anchorY="middle"
-        font="/Pulstar.ttf" 
+        font="/Postertoaster.woff" 
       >
         PORTFOLIO
       </Text>
