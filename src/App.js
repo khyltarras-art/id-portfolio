@@ -14,19 +14,15 @@ useTexture.preload('https://raw.githubusercontent.com/khyltarras-art/id-des/refs
 // --- MAIN APP COMPONENT ---
 export default function App() {
   return (
-    // Height 300vh = 3 Sections
     <div style={{ height: '300vh', width: '100%', backgroundColor: '#111' }}>
       
-      {/* Fixed Canvas */}
       <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh', overflow: 'hidden' }}>
         <Canvas camera={{ position: [0, 0, 15], fov: 25 }}>
           
-          {/* Scroll Logic */}
           <CameraScrollRig />
-          
           <ambientLight intensity={Math.PI} />
 
-          {/* --- SECTION 1: ID CARD --- */}
+          {/* --- SECTION 1 --- */}
           <Physics interpolate gravity={[0, -40, 0]} timeStep={1 / 60}>
             <Band />
           </Physics>
@@ -34,13 +30,12 @@ export default function App() {
             PORTFOLIO
           </Text>
 
-          {/* --- SECTION 2: POLAROIDS --- */}
+          {/* --- SECTION 2 --- */}
           <SecondSection />
 
-          {/* --- SECTION 3: SKILLS & INFO --- */}
+          {/* --- SECTION 3 --- */}
           <ThirdSection />
           
-          {/* Lighting Environment */}
           <Environment background blur={0.75}>
             <color attach="background" args={['black']} />
             <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
@@ -54,7 +49,7 @@ export default function App() {
   )
 }
 
-// --- COMPONENT: CAMERA SCROLL RIG ---
+// --- CAMERA SCROLL RIG ---
 function CameraScrollRig() {
   const { camera, viewport } = useThree()
   const scrollY = useRef(0)
@@ -77,7 +72,7 @@ function CameraScrollRig() {
   return null
 }
 
-// --- COMPONENT: SECTION 2 (POLAROIDS) ---
+// --- SECTION 2 (POLAROIDS) ---
 function SecondSection() {
   const { viewport } = useThree()
   const textRef = useRef()
@@ -103,9 +98,7 @@ function SecondSection() {
   return (
     <group position={[0, yOffset, 0]}>
       <group position={[0, 0, -5]} ref={textRef}>
-        <Text fontSize={4.5} color="white" font="/Postertoaster.woff" anchorX="center" anchorY="middle">
-          KHYL
-        </Text>
+        <Text fontSize={4.5} color="white" font="/Postertoaster.woff" anchorX="center" anchorY="middle">KHYL</Text>
       </group>
       <Float speed={2} rotationIntensity={0.1} floatIntensity={0.2}>
         <DraggableImage position={[-3, 0, 0]} scale={1.2} url={images[0]} rotation={[0, 0, 0.1]} />
@@ -118,97 +111,129 @@ function SecondSection() {
   )
 }
 
-// --- COMPONENT: SECTION 3 (UPDATED SIZES & NO UNDERLINES) ---
+// --- SECTION 3 (SKILLS) ---
 function ThirdSection() {
   const { viewport } = useThree()
+  // Calculate the vertical offset for this section
   const yOffset = -viewport.height * 2
 
-  // CONSTANTS
   const PINK = "#fc568d" 
   const NATIVE = null    
 
+  // We pass 'groupY={yOffset}' to every icon so it knows where it is in the world
   return (
     <group position={[0, yOffset, 0]}>
       
-      {/* --- LEFT SIDE: ABOUT & EDUCATION --- */}
+      {/* Left Text */}
       <group position={[-3, 0, 0]}>
         <group position={[0, 1.2, 0]}>
-          <Text fontSize={0.5} color="#fc568d" font="/Postertoaster.woff" anchorX="left" position={[-1.5, 1, 0]}>
-            ABOUT ME
-          </Text>
+          <Text fontSize={0.5} color="#fc568d" font="/Postertoaster.woff" anchorX="left" position={[-1.5, 1, 0]}>ABOUT ME</Text>
           <Text maxWidth={3.5} fontSize={0.13} color="#cccccc" anchorX="left" anchorY="top" position={[-1.5, 0.5, 0]} lineHeight={1.6}>
             I am an Industrial Engineering student based in Laguna. I bridge the gap between technical logic and creative artistry.
           </Text>
         </group>
         <group position={[0, -1.8, 0]}>
-          <Text fontSize={0.5} color="#fc568d" font="/Postertoaster.woff" anchorX="left" position={[-1.5, 1, 0]}>
-            EDUCATION
-          </Text>
+          <Text fontSize={0.5} color="#fc568d" font="/Postertoaster.woff" anchorX="left" position={[-1.5, 1, 0]}>EDUCATION</Text>
           <Text maxWidth={3.5} fontSize={0.13} color="#cccccc" anchorX="left" anchorY="top" position={[-1.5, 0.5, 0]} lineHeight={1.6}>
-            BS Industrial Engineering{'\n'}
-            VP for Internal Affairs 2024-2025{'\n'}
-            Scholar at DataCamp{'\n'}
-            Head of Social Media University Week 2025 PUPBC
+            BS Industrial Engineering{'\n'}VP for Internal Affairs 2024-2025{'\n'}Scholar at DataCamp
           </Text>
         </group>
       </group>
 
-      {/* --- RIGHT SIDE: TECHNICAL SKILLS --- */}
+      {/* Right Icons */}
       <group position={[2.5, 0, 0]}>
-        <Text position={[0, 2.5, 0]} fontSize={0.8} color="#6366f1" font="/Postertoaster.woff" anchorX="center">
-          TECHNICAL SKILLS
-        </Text>
+        <Text position={[0, 2.5, 0]} fontSize={0.8} color="#6366f1" font="/Postertoaster.woff" anchorX="center">TECHNICAL SKILLS</Text>
         
-        {/* GRID LAYOUT */}
         <group position={[-0.5, 0.5, 0]}>
-            
-            {/* ROW 1: ADOBE (Scale 5.0 - Kept large) */}
-            <SkillIcon position={[-1.2, 1, 0]} color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/ps.svg" />
-            <SkillIcon position={[-0.4, 1, 0]} color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/2ef132951649eec0e0378043636c1d3137cbde9c/svg/ai.svg" />
-            <SkillIcon position={[0.4, 1, 0]}  color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/ae.svg" />
-            <SkillIcon position={[1.2, 1, 0]}  color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/pr.svg" />
+            {/* ROW 1 */}
+            <SkillIcon groupY={yOffset} position={[-1.2, 1, 0]} color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/ps.svg" />
+            <SkillIcon groupY={yOffset} position={[-0.4, 1, 0]} color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/2ef132951649eec0e0378043636c1d3137cbde9c/svg/ai.svg" />
+            <SkillIcon groupY={yOffset} position={[0.4, 1, 0]}  color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/ae.svg" />
+            <SkillIcon groupY={yOffset} position={[1.2, 1, 0]}  color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/pr.svg" />
 
-            {/* ROW 2: 3D & DESIGN (Scale reduced from 1.5/1.0 to 1.2/0.8) */}
-            {/* Unreal: Reduced to 1.2 */}
-            <SkillIcon position={[-1.2, 0, 0]} color={PINK} scaleAdjustment={1} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unrealengine/unrealengine-original.svg" />
-            {/* Blender: Reduced to 1.2 */}
-            <SkillIcon position={[-0.4, 0, 0]} color={PINK} scaleAdjustment={1} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/blender/blender-original.svg" />
-            {/* Canva: Reduced to 0.8 */}
-            <SkillIcon position={[0.4, 0, 0]}  color={PINK} scaleAdjustment={0.8} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/canva/canva-original.svg" />
-            {/* Figma: Reduced to 0.8 */}
-            <SkillIcon position={[1.2, 0, 0]}  color={NATIVE} scaleAdjustment={0.8} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg" />
+            {/* ROW 2 */}
+            <SkillIcon groupY={yOffset} position={[-1.2, 0, 0]} color={PINK} scaleAdjustment={0.85} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unrealengine/unrealengine-original.svg" />
+            <SkillIcon groupY={yOffset} position={[-0.4, 0, 0]} color={PINK} scaleAdjustment={0.85} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/blender/blender-original.svg" />
+            <SkillIcon groupY={yOffset} position={[0.4, 0, 0]}  color={NATIVE} scaleAdjustment={0.6} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/canva/canva-original.svg" />
+            <SkillIcon groupY={yOffset} position={[1.2, 0, 0]}  color={NATIVE} scaleAdjustment={0.6} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg" />
 
-            {/* ROW 3: MODERN TOOLS (Google Cloud reduced, others kept large) */}
-            {/* Notion: Kept at 3.0 */}
-            <SkillIcon position={[-1.2, -1, 0]} color={PINK} scaleAdjustment={4.0} url="https://cdn.simpleicons.org/notion/white" />
-            {/* Google Cloud: Reduced from 1.1 to 0.9 */}
-            <SkillIcon position={[-0.4, -1, 0]} color={NATIVE} scaleAdjustment={0.9} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg" />
-            {/* Ollama: Kept at 3.0 */}
-            <SkillIcon position={[0.4, -1, 0]}  color={PINK} scaleAdjustment={4.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/2ef132951649eec0e0378043636c1d3137cbde9c/svg/n8n.svg" />
-            {/* Midjourney: Kept at 3.0 */}
-            <SkillIcon position={[1.2, -1, 0]}  color={PINK} scaleAdjustment={4.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/midjourney.svg" />
+            {/* ROW 3 */}
+            <SkillIcon groupY={yOffset} position={[-1.2, -1, 0]} color={PINK} scaleAdjustment={4.0} url="https://cdn.simpleicons.org/notion/white" />
+            <SkillIcon groupY={yOffset} position={[-0.4, -1, 0]} color={NATIVE} scaleAdjustment={0.7} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg" />
+            <SkillIcon groupY={yOffset} position={[0.4, -1, 0]}  color={PINK} scaleAdjustment={4.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/2ef132951649eec0e0378043636c1d3137cbde9c/svg/n8n.svg" />
+            <SkillIcon groupY={yOffset} position={[1.2, -1, 0]}  color={PINK} scaleAdjustment={4.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/midjourney.svg" />
         </group>
       </group>
     </group>
   )
 }
 
-// --- HELPER: SKILL ICON (UNDERLINE REMOVED) ---
-function SkillIcon({ position, url, color, scaleAdjustment = 1.0 }) {
+// --- HELPER: SKILL ICON (WITH PROXIMITY LOGIC) ---
+function SkillIcon({ position, url, color, scaleAdjustment = 1.0, groupY }) {
+    const ref = useRef()
     const [hovered, setHover] = useState(false)
     const svgProps = color ? { fillMaterial: { color: color } } : {};
+    
+    // Remember initial local position
+    const initialPos = useMemo(() => new THREE.Vector3(...position), [position])
+    const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), [])
+    const tempVec = useMemo(() => new THREE.Vector3(), [])
+
+    useFrame((state) => {
+        if (!ref.current) return
+
+        // 1. Get Mouse Position in World Space (Z=0)
+        // Since camera moves, this returns the point on the Z=0 plane the mouse is hovering over
+        state.raycaster.ray.intersectPlane(plane, tempVec)
+
+        // 2. Adjust for the Section's Y-Offset
+        // The mouse coordinate is World Space (e.g. Y = -20).
+        // The icon is inside a group at Y = -20. Its local position is Y = 1.
+        // To compare them, we shift the mouse point into the icon's local space.
+        const localMouseY = tempVec.y - groupY 
+        const localMouseX = tempVec.x - 2.0 // Adjust for the Right Side Group offset (approx x=2 or 2.5)
+        
+        // Note: The parent group is at x=2.5 in ThirdSection. 
+        // We need to be precise. 
+        // Let's rely on vector distance instead of guessing offsets?
+        // Actually, simpler math: Distance calculation based on World Position vs World Position.
+        
+        // RE-CALCULATION FOR ACCURACY:
+        const worldX = initialPos.x + 2 // 2.5 was the group X offset, adjusted to center roughly
+        const worldY = initialPos.y + groupY 
+        
+        // Distance from Mouse(World) to Icon(World)
+        const dx = tempVec.x - worldX
+        const dy = tempVec.y - worldY
+        const dist = Math.sqrt(dx*dx + dy*dy)
+
+        const repulsionRadius = 1.5 // Distance to start pushing
+        const forceStrength = 0.5   // How far to push
+
+        let targetX = initialPos.x
+        let targetY = initialPos.y
+
+        if (dist < repulsionRadius) {
+            // Push away
+            const angle = Math.atan2(dy, dx)
+            // Move opposite direction
+            targetX -= Math.cos(angle) * forceStrength * (1 - dist/repulsionRadius)
+            targetY -= Math.sin(angle) * forceStrength * (1 - dist/repulsionRadius)
+        }
+
+        // Smooth Lerp
+        ref.current.position.x = THREE.MathUtils.lerp(ref.current.position.x, targetX, 0.1)
+        ref.current.position.y = THREE.MathUtils.lerp(ref.current.position.y, targetY, 0.1)
+    })
 
     return (
       <group 
+        ref={ref}
         position={position} 
         onPointerOver={() => setHover(true)} 
         onPointerOut={() => setHover(false)}
         scale={hovered ? 1.2 : 1}
       >
-        
-        {/* --- UNDERLINE MESH REMOVED HERE --- */}
-
-        {/* SVG Icon Container */}
         <Center position={[0, 0, 0]}>
              <Svg 
                 src={url} 
@@ -220,7 +245,7 @@ function SkillIcon({ position, url, color, scaleAdjustment = 1.0 }) {
     )
 }
 
-// --- HELPER: DRAGGABLE IMAGE ---
+// --- DRAGGABLE IMAGE & BAND (UNCHANGED) ---
 function DraggableImage({ position, scale, url, rotation = [0, 0, 0] }) {
     const ref = useRef()
     const groupRef = useRef()
@@ -229,7 +254,6 @@ function DraggableImage({ position, scale, url, rotation = [0, 0, 0] }) {
     const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), [])
     const offset = useRef(new THREE.Vector3())
     const intersectPoint = useRef(new THREE.Vector3())
-    const { camera } = useThree()
 
     useFrame((state) => {
         if (dragging && groupRef.current) {
@@ -258,12 +282,10 @@ function DraggableImage({ position, scale, url, rotation = [0, 0, 0] }) {
 
     return (
         <group ref={groupRef} position={position} rotation={rotation}>
-            {/* Polaroid Frame */}
             <mesh position={[0, 0, -0.01]}>
                 <planeGeometry args={[scale * 1.15, scale * 1.4 * 1.25]} />
                 <meshBasicMaterial color="#f4f4f4" side={THREE.DoubleSide} />
             </mesh>
-            {/* Image */}
             <Image
                 ref={ref}
                 url={url}
@@ -279,7 +301,6 @@ function DraggableImage({ position, scale, url, rotation = [0, 0, 0] }) {
     )
 }
 
-// --- HELPER: PHYSICS BAND ---
 function Band({ maxSpeed = 50, minSpeed = 10 }) {
   const band = useRef(), fixed = useRef(), j1 = useRef(), j2 = useRef(), j3 = useRef(), card = useRef()
   const vec = new THREE.Vector3(), ang = new THREE.Vector3(), rot = new THREE.Vector3(), dir = new THREE.Vector3()
