@@ -1,8 +1,7 @@
 import * as THREE from 'three'
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { Canvas, extend, useThree, useFrame } from '@react-three/fiber'
-// --- FIX: Added 'Svg' to this import line ---
-import { useGLTF, useTexture, Environment, Lightformer, Text, Image, Float, Svg } from '@react-three/drei'
+import { useGLTF, useTexture, Environment, Lightformer, Text, Image, Float, Svg, Center } from '@react-three/drei'
 import { BallCollider, CuboidCollider, Physics, RigidBody, useRopeJoint, useSphericalJoint } from '@react-three/rapier'
 import { MeshLineGeometry, MeshLineMaterial } from 'meshline'
 
@@ -62,7 +61,6 @@ function CameraScrollRig() {
 
   useEffect(() => {
     const handleScroll = () => {
-      // Calculate scroll progress (0 to 1) over total scrollable height
       const totalHeight = document.body.scrollHeight - window.innerHeight
       scrollY.current = window.scrollY / totalHeight
     }
@@ -71,13 +69,8 @@ function CameraScrollRig() {
   }, [])
 
   useFrame((state, delta) => {
-    // We have 3 sections, so we move down 2 viewport heights total
-    // Section 1: Y=0 | Section 2: Y=-viewport | Section 3: Y=-2*viewport
     const targetY = -scrollY.current * (viewport.height * 2)
-    
-    // Zoom Logic: 15 (start) -> 12 (mid) -> 14 (end)
     const targetZ = 15 - (scrollY.current * 2) 
-
     camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, delta * 4)
     camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, delta * 4)
   })
@@ -88,14 +81,10 @@ function CameraScrollRig() {
 function SecondSection() {
   const { viewport } = useThree()
   const textRef = useRef()
-  
-  // Position: 1 Full Screen Down
   const yOffset = -viewport.height
 
-  // Parallax Effect for "KHYL" Text
   useFrame((state, delta) => {
     if (textRef.current) {
-      // Moves opposite to mouse movement
       const targetX = (state.mouse.x * viewport.width) / -20
       const targetY = (state.mouse.y * viewport.height) / -20
       textRef.current.position.x = THREE.MathUtils.lerp(textRef.current.position.x, targetX, delta * 2)
@@ -113,14 +102,11 @@ function SecondSection() {
 
   return (
     <group position={[0, yOffset, 0]}>
-      {/* Background Parallax Text */}
       <group position={[0, 0, -5]} ref={textRef}>
         <Text fontSize={4.5} color="white" font="/Postertoaster.woff" anchorX="center" anchorY="middle">
           KHYL
         </Text>
       </group>
-
-      {/* Floating Images */}
       <Float speed={2} rotationIntensity={0.1} floatIntensity={0.2}>
         <DraggableImage position={[-3, 0, 0]} scale={1.2} url={images[0]} rotation={[0, 0, 0.1]} />
         <DraggableImage position={[-1.5, -1, 0.1]} scale={1} url={images[1]} rotation={[0, 0, -0.2]} />
@@ -132,117 +118,106 @@ function SecondSection() {
   )
 }
 
-// --- COMPONENT: SECTION 3 (ABOUT & SKILLS - WITH SVG) ---
+// --- COMPONENT: SECTION 3 (UPDATED SIZES & NO UNDERLINES) ---
 function ThirdSection() {
   const { viewport } = useThree()
   const yOffset = -viewport.height * 2
+
+  // CONSTANTS
+  const PINK = "#fc568d" 
+  const NATIVE = null    
 
   return (
     <group position={[0, yOffset, 0]}>
       
       {/* --- LEFT SIDE: ABOUT & EDUCATION --- */}
-      <group position={[-2.5, 0, 0]}>
-        {/* About Me */}
-        <group position={[-1, 1.2, 0]}>
-          <Text fontSize={0.5} color="#fc568d" font="/Postertoaster.woff" anchorX="left" position={[-2, 1, 0]}>
+      <group position={[-3, 0, 0]}>
+        <group position={[0, 1.2, 0]}>
+          <Text fontSize={0.5} color="#fc568d" font="/Postertoaster.woff" anchorX="left" position={[-1.5, 1, 0]}>
             ABOUT ME
           </Text>
-          <Text maxWidth={4} fontSize={0.13} color="#cccccc" anchorX="left" anchorY="top" position={[-2, 0.5, 0]} lineHeight={1.6}>
-            I am an Industrial Engineering student based in Laguna, bridging the gap between technical logic and creative artistry.
-            Passionate about motion graphics, filmmaking, and event production.
+          <Text maxWidth={3.5} fontSize={0.13} color="#cccccc" anchorX="left" anchorY="top" position={[-1.5, 0.5, 0]} lineHeight={1.6}>
+            I am an Industrial Engineering student based in Laguna. I bridge the gap between technical logic and creative artistry.
           </Text>
         </group>
-
-        {/* Education */}
-        <group position={[-1, -1.8, 0]}>
-          <Text fontSize={0.5} color="#fc568d" font="/Postertoaster.woff" anchorX="left" position={[-2, 1, 0]}>
+        <group position={[0, -1.8, 0]}>
+          <Text fontSize={0.5} color="#fc568d" font="/Postertoaster.woff" anchorX="left" position={[-1.5, 1, 0]}>
             EDUCATION
           </Text>
-          <Text maxWidth={4} fontSize={0.13} color="#cccccc" anchorX="left" anchorY="top" position={[-2, 0.5, 0]} lineHeight={1.6}>
+          <Text maxWidth={3.5} fontSize={0.13} color="#cccccc" anchorX="left" anchorY="top" position={[-1.5, 0.5, 0]} lineHeight={1.6}>
             BS Industrial Engineering{'\n'}
-            4 Years in VP Creatives Positions{'\n'}
-            AWS Cloud Club PUP - Motion Designer{'\n'}
+            VP for Internal Affairs 2024-2025{'\n'}
             Scholar at DataCamp
           </Text>
         </group>
       </group>
 
-      {/* --- RIGHT SIDE: TECHNICAL SKILLS (SVG ICONS) --- */}
+      {/* --- RIGHT SIDE: TECHNICAL SKILLS --- */}
       <group position={[2.5, 0, 0]}>
         <Text position={[0, 2.5, 0]} fontSize={0.8} color="#6366f1" font="/Postertoaster.woff" anchorX="center">
           TECHNICAL SKILLS
         </Text>
         
-        {/* SVG Icon Grid */}
-        <group position={[0, 0.5, 0]}>
-            {/* Row 1 */}
-            <SkillIcon 
-              position={[-1, 1, 0]} 
-              url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/photoshop/photoshop-plain.svg" 
-              color="#31a8ff" 
-            />
-            <SkillIcon 
-              position={[0, 1, 0]} 
-              url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/illustrator/illustrator-plain.svg" 
-              color="#ff9a00" 
-            />
-            <SkillIcon 
-              position={[1, 1, 0]} 
-              url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/aftereffects/aftereffects-plain.svg" 
-              color="#cf96fd" 
-            />
+        {/* GRID LAYOUT */}
+        <group position={[-0.5, 0.5, 0]}>
             
-            {/* Row 2 */}
-            <SkillIcon 
-              position={[-1, -0.2, 0]} 
-              url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/premierepro/premierepro-plain.svg" 
-              color="#9999ff" 
-            />
-            <SkillIcon 
-              position={[0, -0.2, 0]} 
-              url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unrealengine/unrealengine-original.svg" 
-              color="white" 
-              scaleAdjustment={0.8} 
-            />
-            <SkillIcon 
-              position={[1, -0.2, 0]} 
-              url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/blender/blender-original.svg" 
-              color="#e87d0d" 
-            />
+            {/* ROW 1: ADOBE (Scale 5.0 - Kept large) */}
+            <SkillIcon position={[-1.2, 1, 0]} color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/ps.svg" />
+            <SkillIcon position={[-0.4, 1, 0]} color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/2ef132951649eec0e0378043636c1d3137cbde9c/svg/ai.svg" />
+            <SkillIcon position={[0.4, 1, 0]}  color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/ae.svg" />
+            <SkillIcon position={[1.2, 1, 0]}  color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/pr.svg" />
+
+            {/* ROW 2: 3D & DESIGN (Scale reduced from 1.5/1.0 to 1.2/0.8) */}
+            {/* Unreal: Reduced to 1.2 */}
+            <SkillIcon position={[-1.2, 0, 0]} color={PINK} scaleAdjustment={1.2} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unrealengine/unrealengine-original.svg" />
+            {/* Blender: Reduced to 1.2 */}
+            <SkillIcon position={[-0.4, 0, 0]} color={PINK} scaleAdjustment={1.2} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/blender/blender-original.svg" />
+            {/* Canva: Reduced to 0.8 */}
+            <SkillIcon position={[0.4, 0, 0]}  color={NATIVE} scaleAdjustment={0.8} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/canva/canva-original.svg" />
+            {/* Figma: Reduced to 0.8 */}
+            <SkillIcon position={[1.2, 0, 0]}  color={NATIVE} scaleAdjustment={0.8} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg" />
+
+            {/* ROW 3: MODERN TOOLS (Google Cloud reduced, others kept large) */}
+            {/* Notion: Kept at 3.0 */}
+            <SkillIcon position={[-1.2, -1, 0]} color={PINK} scaleAdjustment={3.0} url="https://cdn.simpleicons.org/notion/white" />
+            {/* Google Cloud: Reduced from 1.1 to 0.9 */}
+            <SkillIcon position={[-0.4, -1, 0]} color={NATIVE} scaleAdjustment={0.9} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg" />
+            {/* Ollama: Kept at 3.0 */}
+            <SkillIcon position={[0.4, -1, 0]}  color={PINK} scaleAdjustment={3.0} url="https://cdn.simpleicons.org/ollama/white" />
+            {/* Midjourney: Kept at 3.0 */}
+            <SkillIcon position={[1.2, -1, 0]}  color={PINK} scaleAdjustment={3.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/midjourney.svg" />
         </group>
       </group>
     </group>
   )
 }
 
-// --- HELPER: SKILL ICON (SVG VERSION) ---
-function SkillIcon({ position, url, color, scaleAdjustment = 1 }) {
+// --- HELPER: SKILL ICON (UNDERLINE REMOVED) ---
+function SkillIcon({ position, url, color, scaleAdjustment = 1.0 }) {
     const [hovered, setHover] = useState(false)
-    const baseScale = 0.005 * scaleAdjustment
+    const svgProps = color ? { fillMaterial: { color: color } } : {};
 
     return (
       <group 
         position={position} 
         onPointerOver={() => setHover(true)} 
         onPointerOut={() => setHover(false)}
-        scale={hovered ? 1.1 : 1}
+        scale={hovered ? 1.2 : 1}
       >
-        <mesh>
-          <planeGeometry args={[0.8, 0.8]} />
-          <meshBasicMaterial color={hovered ? '#333' : '#1a1a1a'} />
-        </mesh>
         
-        <mesh position={[0, -0.38, 0.01]}>
-           <planeGeometry args={[0.7, 0.05]} />
-           <meshBasicMaterial color={color} />
-        </mesh>
+        {/* --- UNDERLINE MESH REMOVED HERE --- */}
 
-        <group position={[-0.25, 0.25, 0.01]} scale={[1, -1, 1]}> 
-             <Svg src={url} scale={baseScale} />
-        </group>
+        {/* SVG Icon Container */}
+        <Center position={[0, 0, 0]}>
+             <Svg 
+                src={url} 
+                scale={[0.004 * scaleAdjustment, 0.004 * scaleAdjustment, 0.004 * scaleAdjustment]}
+                {...svgProps}
+             />
+        </Center>
       </group>
     )
-  }
+}
 
 // --- HELPER: DRAGGABLE IMAGE ---
 function DraggableImage({ position, scale, url, rotation = [0, 0, 0] }) {
@@ -282,10 +257,12 @@ function DraggableImage({ position, scale, url, rotation = [0, 0, 0] }) {
 
     return (
         <group ref={groupRef} position={position} rotation={rotation}>
+            {/* Polaroid Frame */}
             <mesh position={[0, 0, -0.01]}>
                 <planeGeometry args={[scale * 1.15, scale * 1.4 * 1.25]} />
                 <meshBasicMaterial color="#f4f4f4" side={THREE.DoubleSide} />
             </mesh>
+            {/* Image */}
             <Image
                 ref={ref}
                 url={url}
