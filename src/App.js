@@ -7,37 +7,40 @@ import { MeshLineGeometry, MeshLineMaterial } from 'meshline'
 
 extend({ MeshLineGeometry, MeshLineMaterial })
 
-// Preload assets
+// --- ASSETS PRELOAD ---
 useGLTF.preload('https://raw.githubusercontent.com/khyltarras-art/id-des/refs/heads/main/Card.glb')
 useTexture.preload('https://raw.githubusercontent.com/khyltarras-art/id-des/refs/heads/main/band.png')
 
+// --- MAIN APP COMPONENT ---
 export default function App() {
   return (
-    // Outer container allows scrolling (200vh height = 2 pages)
-    <div style={{ height: '200vh', width: '100%', backgroundColor: '#111' }}>
+    // Height 300vh = 3 Sections
+    <div style={{ height: '300vh', width: '100%', backgroundColor: '#111' }}>
       
-      {/* Fixed Canvas: Stays put while you scroll */}
+      {/* Fixed Canvas */}
       <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh', overflow: 'hidden' }}>
         <Canvas camera={{ position: [0, 0, 15], fov: 25 }}>
-          {/* Controls Camera Movement based on Scroll */}
+          
+          {/* Scroll Logic */}
           <CameraScrollRig />
           
           <ambientLight intensity={Math.PI} />
-          
-          {/* SECTION 1: ID CARD (Physics) */}
-          {/* We keep this at Y=0 */}
+
+          {/* --- SECTION 1: ID CARD --- */}
           <Physics interpolate gravity={[0, -40, 0]} timeStep={1 / 60}>
             <Band />
           </Physics>
-          {/* Background Text for Section 1 */}
           <Text position={[0, 0, -5]} fontSize={4.5} color="#fc568d" anchorX="center" anchorY="middle" font="/Postertoaster.woff">
             PORTFOLIO
           </Text>
 
-          {/* SECTION 2: DRAGGABLE IMAGES */}
-          {/* We position this exactly one viewport height below the first section */}
+          {/* --- SECTION 2: POLAROIDS --- */}
           <SecondSection />
+
+          {/* --- SECTION 3: SKILLS & INFO --- */}
+          <ThirdSection />
           
+          {/* Lighting Environment */}
           <Environment background blur={0.75}>
             <color attach="background" args={['black']} />
             <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
@@ -51,15 +54,14 @@ export default function App() {
   )
 }
 
-// --- CAMERA SCROLL RIG ---
-// This smoothly moves the camera down as you scroll the HTML page
+// --- COMPONENT: CAMERA SCROLL RIG ---
 function CameraScrollRig() {
   const { camera, viewport } = useThree()
   const scrollY = useRef(0)
 
   useEffect(() => {
     const handleScroll = () => {
-      // Calculate scroll percentage (0 to 1)
+      // Calculate scroll progress (0 to 1) over total scrollable height
       const totalHeight = document.body.scrollHeight - window.innerHeight
       scrollY.current = window.scrollY / totalHeight
     }
@@ -68,36 +70,33 @@ function CameraScrollRig() {
   }, [])
 
   useFrame((state, delta) => {
-    // Target Y position: 0 when top, -viewport.height when bottom
-    const targetY = -scrollY.current * viewport.height
+    // We have 3 sections, so we move down 2 viewport heights total
+    // Section 1: Y=0 | Section 2: Y=-viewport | Section 3: Y=-2*viewport
+    const targetY = -scrollY.current * (viewport.height * 2)
     
-    // Smoothly lerp camera position
-    // We adjust the Z slightly too (15 to 12) for a nice zoom-in effect on the photos
-    const targetZ = 15 - (scrollY.current * 3) 
+    // Zoom Logic: 15 (start) -> 12 (mid) -> 14 (end)
+    const targetZ = 15 - (scrollY.current * 2) 
 
-    camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, delta * 4) // Speed 4
+    camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, delta * 4)
     camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, delta * 4)
   })
   return null
 }
 
-// --- SECTION 2 COMPONENT WITH PARALLAX ---
+// --- COMPONENT: SECTION 2 (POLAROIDS) ---
 function SecondSection() {
-  const { viewport, mouse } = useThree()
+  const { viewport } = useThree()
   const textRef = useRef()
   
-  // Position it one full screen down
+  // Position: 1 Full Screen Down
   const yOffset = -viewport.height
 
-  // Smoothly move the text based on mouse position
+  // Parallax Effect for "KHYL" Text
   useFrame((state, delta) => {
     if (textRef.current) {
-      // Move opposite to mouse (x / 20 means it moves 1/20th the speed of mouse)
-      // We start from the base position [0, 0, -5]
+      // Moves opposite to mouse movement
       const targetX = (state.mouse.x * viewport.width) / -20
       const targetY = (state.mouse.y * viewport.height) / -20
-      
-      // Lerp for smoothness
       textRef.current.position.x = THREE.MathUtils.lerp(textRef.current.position.x, targetX, delta * 2)
       textRef.current.position.y = THREE.MathUtils.lerp(textRef.current.position.y, targetY, delta * 2)
     }
@@ -113,19 +112,9 @@ function SecondSection() {
 
   return (
     <group position={[0, yOffset, 0]}>
-      
-      {/* Title with Parallax Ref */}
-      {/* Note: We removed the hardcoded position={[0,0,-5]} here because useFrame controls X/Y now. */}
-      {/* We set initial Z in the useFrame or directly on the mesh if needed, but easier to wrap or offset. */}
-      
+      {/* Background Parallax Text */}
       <group position={[0, 0, -5]} ref={textRef}>
-        <Text 
-          fontSize={4.5} 
-          color="white" 
-          font="/Postertoaster.woff" 
-          anchorX="center" 
-          anchorY="middle"
-        >
+        <Text fontSize={4.5} color="white" font="/Postertoaster.woff" anchorX="center" anchorY="middle">
           KHYL
         </Text>
       </group>
@@ -141,31 +130,115 @@ function SecondSection() {
     </group>
   )
 }
-// --- EXACT CURSOR DRAG COMPONENT (POLAROID) ---
+
+// --- COMPONENT: SECTION 3 (ABOUT & SKILLS) ---
+function ThirdSection() {
+  const { viewport } = useThree()
+  
+  // Position: 2 Full Screens Down
+  const yOffset = -viewport.height * 2
+
+  return (
+    <group position={[0, yOffset, 0]}>
+      
+      {/* --- LEFT SIDE: ABOUT & EDUCATION (Swapped) --- */}
+      {/* Moved from x=2.5 to x=-2.5 */}
+      <group position={[-2.5, 0, 0]}>
+        
+        {/* About Me */}
+        <group position={[-1, 1.2, 0]}>
+          <Text fontSize={0.5} color="#fc568d" font="/Postertoaster.woff" anchorX="left" position={[-2, 1, 0]}>
+            ABOUT ME
+          </Text>
+          <Text maxWidth={4} fontSize={0.13} color="#cccccc" anchorX="left" anchorY="top" position={[-2, 0.5, 0]} lineHeight={1.6}>
+            I am an Industrial Engineering student based in Laguna, bridging the gap between technical logic and creative artistry.
+            Passionate about motion graphics, filmmaking, and event production.
+          </Text>
+        </group>
+
+        {/* Education */}
+        <group position={[-1, -1.8, 0]}>
+          <Text fontSize={0.5} color="#fc568d" font="/Postertoaster.woff" anchorX="left" position={[-2, 1, 0]}>
+            EDUCATION
+          </Text>
+          <Text maxWidth={4} fontSize={0.13} color="#cccccc" anchorX="left" anchorY="top" position={[-2, 0.5, 0]} lineHeight={1.6}>
+            BS Industrial Engineering{'\n'}
+            4 Years in VP Creatives Positions{'\n'}
+            AWS Cloud Club PUP - Motion Designer
+          </Text>
+        </group>
+
+      </group>
+
+      {/* --- RIGHT SIDE: TECHNICAL SKILLS (Swapped) --- */}
+      {/* Moved from x=-2.5 to x=2.5 */}
+      <group position={[2.5, 0, 0]}>
+        <Text position={[0, 2.5, 0]} fontSize={0.8} color="#6366f1" font="/Postertoaster.woff" anchorX="center">
+          TECHNICAL SKILLS
+        </Text>
+        
+        {/* Simple Grid of Icons */}
+        <group position={[0, 0.5, 0]}>
+            <SkillIcon position={[-1, 1, 0]} label="Ps" color="#31a8ff" />
+            <SkillIcon position={[0, 1, 0]} label="Ai" color="#ff9a00" />
+            <SkillIcon position={[1, 1, 0]} label="Ae" color="#cf96fd" />
+            
+            <SkillIcon position={[-1, -0.2, 0]} label="Pr" color="#9999ff" />
+            <SkillIcon position={[0, -0.2, 0]} label="UE" color="white" />
+            <SkillIcon position={[1, -0.2, 0]} label="Bl" color="#e87d0d" />
+        </group>
+      </group>
+    </group>
+  )
+}
+
+// --- HELPER: SKILL ICON ---
+function SkillIcon({ position, label, color }) {
+    const [hovered, setHover] = useState(false)
+    return (
+      <group 
+        position={position} 
+        onPointerOver={() => setHover(true)} 
+        onPointerOut={() => setHover(false)}
+        scale={hovered ? 1.1 : 1}
+      >
+        {/* Background Box */}
+        <mesh>
+          <planeGeometry args={[0.8, 0.8]} />
+          <meshBasicMaterial color={hovered ? '#333' : '#1a1a1a'} />
+        </mesh>
+        {/* Colored Border/Underline Effect */}
+        <mesh position={[0, -0.38, 0.01]}>
+           <planeGeometry args={[0.7, 0.05]} />
+           <meshBasicMaterial color={color} />
+        </mesh>
+        <Text fontSize={0.35} color={color} font="/Postertoaster.woff" position={[0,0.05,0.02]}>
+          {label}
+        </Text>
+      </group>
+    )
+  }
+
+// --- HELPER: DRAGGABLE IMAGE ---
 function DraggableImage({ position, scale, url, rotation = [0, 0, 0] }) {
     const ref = useRef()
     const groupRef = useRef()
     const [hovered, setHover] = useState(false)
     const [dragging, setDragging] = useState(false)
-    
-    // Create an infinite plane at Z=0 to capture mouse movement
     const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), [])
     const offset = useRef(new THREE.Vector3())
     const intersectPoint = useRef(new THREE.Vector3())
-
     const { camera } = useThree()
 
     useFrame((state) => {
         if (dragging && groupRef.current) {
-            // Calculate where the mouse is pointing on the Z=0 plane
             state.raycaster.ray.intersectPlane(plane, intersectPoint.current)
-            // Apply that position minus the initial offset
             groupRef.current.position.subVectors(intersectPoint.current, offset.current)
         }
     })
 
     const handlePointerDown = (e) => {
-        e.stopPropagation() // Stop click from passing through
+        e.stopPropagation()
         e.ray.intersectPlane(plane, intersectPoint.current)
         offset.current.subVectors(intersectPoint.current, groupRef.current.position)
         e.target.setPointerCapture(e.pointerId)
@@ -182,28 +255,20 @@ function DraggableImage({ position, scale, url, rotation = [0, 0, 0] }) {
         document.body.style.cursor = dragging ? 'grabbing' : (hovered ? 'grab' : 'auto')
     }, [hovered, dragging])
 
-    // Dimensions
-    const imgWidth = scale;
-    const imgHeight = scale * 1.4;
-    const frameWidth = imgWidth * 1.15; 
-    const frameHeight = imgHeight * 1.25;
-    const imgYOffset = scale * 0.1; 
-
     return (
         <group ref={groupRef} position={position} rotation={rotation}>
             {/* Polaroid Frame */}
             <mesh position={[0, 0, -0.01]}>
-                <planeGeometry args={[frameWidth, frameHeight]} />
+                <planeGeometry args={[scale * 1.15, scale * 1.4 * 1.25]} />
                 <meshBasicMaterial color="#f4f4f4" side={THREE.DoubleSide} />
             </mesh>
             {/* Image */}
             <Image
                 ref={ref}
                 url={url}
-                position={[0, imgYOffset, 0.01]} 
-                scale={[imgWidth, imgHeight]}
+                position={[0, scale * 0.1, 0.01]} 
+                scale={[scale, scale * 1.4]}
                 transparent
-                opacity={1}
                 onPointerOver={() => setHover(true)}
                 onPointerOut={() => setHover(false)}
                 onPointerDown={handlePointerDown}
@@ -213,10 +278,10 @@ function DraggableImage({ position, scale, url, rotation = [0, 0, 0] }) {
     )
 }
 
-// --- BAND COMPONENT (ID CARD - Unchanged Logic) ---
+// --- HELPER: PHYSICS BAND ---
 function Band({ maxSpeed = 50, minSpeed = 10 }) {
-  const band = useRef(), fixed = useRef(), j1 = useRef(), j2 = useRef(), j3 = useRef(), card = useRef() // prettier-ignore
-  const vec = new THREE.Vector3(), ang = new THREE.Vector3(), rot = new THREE.Vector3(), dir = new THREE.Vector3() // prettier-ignore
+  const band = useRef(), fixed = useRef(), j1 = useRef(), j2 = useRef(), j3 = useRef(), card = useRef()
+  const vec = new THREE.Vector3(), ang = new THREE.Vector3(), rot = new THREE.Vector3(), dir = new THREE.Vector3()
   const segmentProps = { type: 'dynamic', canSleep: true, colliders: false, angularDamping: 2, linearDamping: 2 }
   const { nodes, materials } = useGLTF('https://raw.githubusercontent.com/khyltarras-art/id-des/refs/heads/main/Card.glb')
   const texture = useTexture('https://raw.githubusercontent.com/khyltarras-art/id-des/refs/heads/main/band.png')
@@ -225,10 +290,10 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
   const [dragged, drag] = useState(false)
   const [hovered, hover] = useState(false)
 
-  useRopeJoint(fixed, j1, [[0, 0, 0], [0, 0, 0], 1]) // prettier-ignore
-  useRopeJoint(j1, j2, [[0, 0, 0], [0, 0, 0], 1]) // prettier-ignore
-  useRopeJoint(j2, j3, [[0, 0, 0], [0, 0, 0], 1]) // prettier-ignore
-  useSphericalJoint(j3, card, [[0, 0, 0], [0, 1.45, 0]]) // prettier-ignore
+  useRopeJoint(fixed, j1, [[0, 0, 0], [0, 0, 0], 1])
+  useRopeJoint(j1, j2, [[0, 0, 0], [0, 0, 0], 1])
+  useRopeJoint(j2, j3, [[0, 0, 0], [0, 0, 0], 1])
+  useSphericalJoint(j3, card, [[0, 0, 0], [0, 1.45, 0]])
 
   useEffect(() => {
     if (hovered) {
@@ -269,15 +334,9 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
     <>
       <group position={[0, 4, 0]}>
         <RigidBody ref={fixed} {...segmentProps} type="fixed" />
-        <RigidBody position={[0.5, 0, 0]} ref={j1} {...segmentProps}>
-          <BallCollider args={[0.1]} />
-        </RigidBody>
-        <RigidBody position={[1, 0, 0]} ref={j2} {...segmentProps}>
-          <BallCollider args={[0.1]} />
-        </RigidBody>
-        <RigidBody position={[1.5, 0, 0]} ref={j3} {...segmentProps}>
-          <BallCollider args={[0.1]} />
-        </RigidBody>
+        <RigidBody position={[0.5, 0, 0]} ref={j1} {...segmentProps}><BallCollider args={[0.1]} /></RigidBody>
+        <RigidBody position={[1, 0, 0]} ref={j2} {...segmentProps}><BallCollider args={[0.1]} /></RigidBody>
+        <RigidBody position={[1.5, 0, 0]} ref={j3} {...segmentProps}><BallCollider args={[0.1]} /></RigidBody>
         <RigidBody position={[2, 0, 0]} ref={card} {...segmentProps} type={dragged ? 'kinematicPosition' : 'dynamic'}>
           <CuboidCollider args={[0.8, 1.125, 0.01]} />
           <group
