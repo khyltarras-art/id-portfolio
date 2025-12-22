@@ -86,6 +86,7 @@ function FourthSection() {
     return (
       <group position={[0, yOffset, 0]}>
 
+
         <Text position={[-3.5, 1, 0]} fontSize={0.3} color="#fc568d" anchorX="right" font="/Postertoaster.woff">LET'S CONNECT</Text>
         <Text position={[-3.5, 0.5, 0]} fontSize={0.3} color="#fc568d" anchorX="right" font="/Postertoaster.woff">EMAIL ME</Text>
         <Text position={[-3.5, 0, 0]} fontSize={0.3} color="#fc568d" anchorX="right" font="/Postertoaster.woff">LINKEDIN</Text>
@@ -108,7 +109,7 @@ function Avatar({ url }) {
     const gltf = useGLTF(url)
   
     const EYE_Y_OFFSET = 1.1; 
-    const MODEL_SCALE = 2.2; 
+    const MODEL_SCALE = 5; 
     const LERP_SPEED = 6;
 
     // Movement Sensitivity
