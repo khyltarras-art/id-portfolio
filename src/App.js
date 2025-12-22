@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { Canvas, extend, useThree, useFrame } from '@react-three/fiber'
-import { useGLTF, useTexture, Environment, Lightformer, Text, Image, Float, Svg, Center } from '@react-three/drei'
+import { useGLTF, useTexture, Environment, Lightformer, Text, Image, Float, Svg, Center, SpotLight } from '@react-three/drei'
 import { BallCollider, CuboidCollider, Physics, RigidBody, useRopeJoint, useSphericalJoint } from '@react-three/rapier'
 import { MeshLineGeometry, MeshLineMaterial } from 'meshline'
 
@@ -10,34 +10,39 @@ extend({ MeshLineGeometry, MeshLineMaterial })
 // --- ASSETS PRELOAD ---
 useGLTF.preload('https://raw.githubusercontent.com/khyltarras-art/id-des/refs/heads/main/Card.glb')
 useTexture.preload('https://raw.githubusercontent.com/khyltarras-art/id-des/refs/heads/main/band.png')
+useGLTF.preload('https://raw.githubusercontent.com/khyltarras-art/id-des/main/face2.glb')
 
 // --- MAIN APP COMPONENT ---
 export default function App() {
   return (
-    <div style={{ height: '300vh', width: '100%', backgroundColor: '#111' }}>
+    <div style={{ height: '400vh', width: '100%', backgroundColor: '#1e1d1dff' }}>
       
       <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh', overflow: 'hidden' }}>
-        <Canvas camera={{ position: [0, 0, 15], fov: 25 }}>
+        <Canvas camera={{ position: [0, 0, 15], fov: 25 }} shadows>
           
           <CameraScrollRig />
-          <ambientLight intensity={Math.PI} />
+          <ambientLight intensity={Math.PI * 0.3} />
+          <spotLight position={[0, 5, 10]} intensity={1} angle={0.3} penumbra={1} />
 
-          {/* --- SECTION 1 --- */}
+          {/* --- SECTION 1: LANYARD --- */}
           <Physics interpolate gravity={[0, -40, 0]} timeStep={1 / 60}>
             <Band />
           </Physics>
-          <Text position={[0, 0, -5]} fontSize={4.5} color="#fc568d" anchorX="center" anchorY="middle" font="/Postertoaster.woff">
+          <Text position={[0, -1, -6]} fontSize={4.5} color="#fc568d" anchorX="center" anchorY="middle" font="/Postertoaster.woff">
             PORTFOLIO
           </Text>
 
-          {/* --- SECTION 2 --- */}
+          {/* --- SECTION 2: POLAROIDS --- */}
           <SecondSection />
 
-          {/* --- SECTION 3 --- */}
+          {/* --- SECTION 3: SKILLS --- */}
           <ThirdSection />
+
+          {/* --- SECTION 4: AVATAR --- */}
+          <FourthSection />
           
           <Environment background blur={0.75}>
-            <color attach="background" args={['black']} />
+            <color attach="background" args={['#1e1d1d']} />
             <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
             <Lightformer intensity={3} color="white" position={[-1, -1, 1]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
             <Lightformer intensity={3} color="white" position={[1, 1, 1]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
@@ -64,20 +69,185 @@ function CameraScrollRig() {
   }, [])
 
   useFrame((state, delta) => {
-    const targetY = -scrollY.current * (viewport.height * 2)
-    const targetZ = 15 - (scrollY.current * 2) 
+    const targetY = -scrollY.current * (viewport.height * 3)
+    const targetZ = 15 - (scrollY.current * 3) 
     camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, delta * 4)
     camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, delta * 4)
   })
   return null
 }
 
-// --- SECTION 2 (POLAROIDS) ---
+// --- SECTION 4: AVATAR COMPONENT ---
+function FourthSection() {
+    const { viewport } = useThree()
+    const yOffset = -viewport.height * 3
+    const lightTarget = useRef()
+  
+    return (
+      <group position={[0, yOffset, 0]}>
+        {/* Interrogation Spotlight */}
+        <SpotLight
+            position={[0, 4, 2]} 
+            target={lightTarget.current}
+            intensity={20}       
+            distance={10}        
+            angle={0.4}          
+            attenuation={5}      
+            anglePower={5}
+            penumbra={0.5}       
+            castShadow
+        />
+        <mesh ref={lightTarget} position={[0, -0.5, 0]} visible={false}>
+            <sphereGeometry args={[0.1]} />
+        </mesh>
+
+        <Text position={[-3.5, 1, 0]} fontSize={0.3} color="#fc568d" anchorX="right" font="/Postertoaster.woff">LET'S CONNECT</Text>
+        <Text position={[-3.5, 0.5, 0]} fontSize={0.3} color="#fc568d" anchorX="right" font="/Postertoaster.woff">EMAIL ME</Text>
+        <Text position={[-3.5, 0, 0]} fontSize={0.3} color="#fc568d" anchorX="right" font="/Postertoaster.woff">LINKEDIN</Text>
+
+        <Text position={[3.5, 1, 0]} fontSize={0.3} color="#fc568d" anchorX="left" font="/Postertoaster.woff">THANKS FOR</Text>
+        <Text position={[3.5, 0.5, 0]} fontSize={0.3} color="#fc568d" anchorX="left" font="/Postertoaster.woff">VISITING</Text>
+        <Text position={[3.5, 0, 0]} fontSize={0.3} color="#fc568d" anchorX="left" font="/Postertoaster.woff">SCROLL UP</Text>
+
+        <group position={[0, 1, 0]}>
+            <Avatar url="https://raw.githubusercontent.com/khyltarras-art/id-des/main/face2.glb" /> 
+        </group>
+      </group>
+    )
+  }
+
+function Avatar({ url }) {
+    const pivotRef = useRef()
+    const targetVec = useRef(new THREE.Vector3(0, 0, 20)) 
+    const { viewport, mouse } = useThree()
+    const gltf = useGLTF(url)
+  
+    const EYE_Y_OFFSET = 1.1; 
+    const MODEL_SCALE = 2.2; 
+    const LERP_SPEED = 6;
+
+    // Movement Sensitivity
+    const LOOK_AMOUNT_X = 15.0; // Wide turn
+    const LOOK_AMOUNT_Y = 0.4;  // Restricted tilt
+    const DEADZONE = 0.15;      // Radius to look forward
+
+    useFrame((state, delta) => {
+      if (!pivotRef.current) return
+  
+      let desiredX = mouse.x * (viewport.width / 2) * LOOK_AMOUNT_X
+      let desiredY = mouse.y * (viewport.height / 2) * LOOK_AMOUNT_Y
+
+      // Neutral zone check
+      if (Math.abs(mouse.x) < DEADZONE && Math.abs(mouse.y) < DEADZONE) {
+          desiredX = 0;
+          desiredY = 0;
+      }
+  
+      targetVec.current.x = THREE.MathUtils.lerp(targetVec.current.x, desiredX, delta * LERP_SPEED)
+      targetVec.current.y = THREE.MathUtils.lerp(targetVec.current.y, desiredY, delta * LERP_SPEED)
+      targetVec.current.z = 20 
+  
+      pivotRef.current.lookAt(targetVec.current)
+    })
+
+    useEffect(() => {
+        gltf.scene.traverse((node) => {
+            if (node.isMesh) {
+                node.castShadow = true
+                node.receiveShadow = true
+            }
+        })
+    }, [gltf])
+  
+    return (
+        <group ref={pivotRef}>
+            <primitive object={gltf.scene} position={[0, -EYE_Y_OFFSET, 0]} scale={MODEL_SCALE} />
+        </group>
+    )
+}
+
+// --- SECTION 3: SKILLS ---
+function ThirdSection() {
+  const { viewport } = useThree()
+  const yOffset = -viewport.height * 2
+  const PINK = "#fc568d" 
+
+  return (
+    <group position={[0, yOffset, 0]}>
+      <group position={[-3, 0, 0]}>
+        <group position={[0, 1.2, 0]}>
+          <Text fontSize={0.5} color="#fc568d" font="/Postertoaster.woff" anchorX="left" position={[-1.5, 1, 0]}>ABOUT ME</Text>
+          <Text maxWidth={3.5} fontSize={0.13} color="#cccccc" anchorX="left" anchorY="top" position={[-1.5, 0.5, 0]} lineHeight={1.6}>
+            I am an Industrial Engineering student based in Laguna. I bridge the gap between technical logic and creative artistry.
+          </Text>
+        </group>
+        <group position={[0, -1.8, 0]}>
+          <Text fontSize={0.5} color="#fc568d" font="/Postertoaster.woff" anchorX="left" position={[-1.5, 1, 0]}>EDUCATION</Text>
+          <Text maxWidth={3.5} fontSize={0.13} color="#cccccc" anchorX="left" anchorY="top" position={[-1.5, 0.5, 0]} lineHeight={1.6}>
+            BS Industrial Engineering{'\n'}4 Years Vice President for Creatives{'\n'}Scholar at DataCamp{'\n'}AWS Cloud Club PUP - Motion Designer{'\n'}Head of Social Media University WEEK PUPBC
+          </Text>
+        </group>
+      </group>
+
+      <group position={[2.5, 0, 0]}>
+        <Text position={[0, 2.5, 0]} fontSize={0.8} color="#6366f1" font="/Postertoaster.woff" anchorX="center">TECHNICAL SKILLS</Text>
+        <group position={[-0.5, 0.5, 0]}>
+            <SkillIcon groupY={yOffset} position={[-1.2, 1, 0]} color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/ps.svg" />
+            <SkillIcon groupY={yOffset} position={[-0.4, 1, 0]} color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/2ef132951649eec0e0378043636c1d3137cbde9c/svg/ai.svg" />
+            <SkillIcon groupY={yOffset} position={[0.4, 1, 0]}  color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/ae.svg" />
+            <SkillIcon groupY={yOffset} position={[1.2, 1, 0]}  color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/pr.svg" />
+            <SkillIcon groupY={yOffset} position={[-1.2, 0, 0]} color={PINK} scaleAdjustment={0.85} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unrealengine/unrealengine-original.svg" />
+            <SkillIcon groupY={yOffset} position={[-0.4, 0, 0]} color={PINK} scaleAdjustment={0.85} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/blender/blender-original.svg" />
+            <SkillIcon groupY={yOffset} position={[0.4, 0, 0]}  color={null} scaleAdjustment={0.6} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/canva/canva-original.svg" />
+            <SkillIcon groupY={yOffset} position={[1.2, 0, 0]}  color={null} scaleAdjustment={0.6} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg" />
+            <SkillIcon groupY={yOffset} position={[-1.2, -1, 0]} color={PINK} scaleAdjustment={4.0} url="https://cdn.simpleicons.org/notion/white" />
+            <SkillIcon groupY={yOffset} position={[-0.4, -1, 0]} color={null} scaleAdjustment={0.7} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg" />
+            <SkillIcon groupY={yOffset} position={[0.4, -1, 0]}  color={PINK} scaleAdjustment={4.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/2ef132951649eec0e0378043636c1d3137cbde9c/svg/n8n.svg" />
+            <SkillIcon groupY={yOffset} position={[1.2, -1, 0]}  color={PINK} scaleAdjustment={4.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/midjourney.svg" />
+        </group>
+      </group>
+    </group>
+  )
+}
+
+function SkillIcon({ position, url, color, scaleAdjustment = 1.0, groupY }) {
+    const ref = useRef()
+    const [hovered, setHover] = useState(false)
+    const svgProps = color ? { fillMaterial: { color: color } } : {};
+    const initialLocalPos = useMemo(() => new THREE.Vector3(...position), [position])
+    const worldPos = useMemo(() => new THREE.Vector3(), [])
+    const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), [])
+    const mouse3D = useMemo(() => new THREE.Vector3(), [])
+
+    useFrame((state) => {
+        if (!ref.current) return
+        state.raycaster.ray.intersectPlane(plane, mouse3D)
+        ref.current.parent.localToWorld(worldPos.copy(initialLocalPos))
+        const dx = mouse3D.x - worldPos.x
+        const dy = mouse3D.y - worldPos.y
+        const dist = Math.sqrt(dx*dx + dy*dy)
+        let targetX = initialLocalPos.x
+        let targetY = initialLocalPos.y
+        if (dist < 1.5) {
+            const angle = Math.atan2(dy, dx)
+            targetX -= Math.cos(angle) * 0.5 * (1 - dist/1.5)
+            targetY -= Math.sin(angle) * 0.5 * (1 - dist/1.5)
+        }
+        ref.current.position.x = THREE.MathUtils.lerp(ref.current.position.x, targetX, 0.1)
+        ref.current.position.y = THREE.MathUtils.lerp(ref.current.position.y, targetY, 0.1)
+    })
+    return (
+      <group ref={ref} position={position} onPointerOver={() => setHover(true)} onPointerOut={() => setHover(false)} scale={hovered ? 1.2 : 1}>
+        <Center><Svg src={url} scale={0.004 * scaleAdjustment} {...svgProps} /></Center>
+      </group>
+    )
+}
+
+// --- SECTION 2: POLAROIDS ---
 function SecondSection() {
   const { viewport } = useThree()
   const textRef = useRef()
   const yOffset = -viewport.height
-
   useFrame((state, delta) => {
     if (textRef.current) {
       const targetX = (state.mouse.x * viewport.width) / -20
@@ -86,7 +256,6 @@ function SecondSection() {
       textRef.current.position.y = THREE.MathUtils.lerp(textRef.current.position.y, targetY, delta * 2)
     }
   })
-
   const images = [
     "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/1.jpg",
     "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/2.png",
@@ -94,7 +263,6 @@ function SecondSection() {
     "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/4.jpg",
     "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/6.jpg"
   ]
-
   return (
     <group position={[0, yOffset, 0]}>
       <group position={[0, 0, -5]} ref={textRef}>
@@ -111,143 +279,7 @@ function SecondSection() {
   )
 }
 
-// --- SECTION 3 (SKILLS) ---
-function ThirdSection() {
-  const { viewport } = useThree()
-  // Calculate the vertical offset for this section
-  const yOffset = -viewport.height * 2
-
-  const PINK = "#fc568d" 
-  const NATIVE = null    
-
-  // We pass 'groupY={yOffset}' to every icon so it knows where it is in the world
-  return (
-    <group position={[0, yOffset, 0]}>
-      
-      {/* Left Text */}
-      <group position={[-3, 0, 0]}>
-        <group position={[0, 1.2, 0]}>
-          <Text fontSize={0.5} color="#fc568d" font="/Postertoaster.woff" anchorX="left" position={[-1.5, 1, 0]}>ABOUT ME</Text>
-          <Text maxWidth={3.5} fontSize={0.13} color="#cccccc" anchorX="left" anchorY="top" position={[-1.5, 0.5, 0]} lineHeight={1.6}>
-            I am an Industrial Engineering student based in Laguna. I bridge the gap between technical logic and creative artistry.
-          </Text>
-        </group>
-        <group position={[0, -1.8, 0]}>
-          <Text fontSize={0.5} color="#fc568d" font="/Postertoaster.woff" anchorX="left" position={[-1.5, 1, 0]}>EDUCATION</Text>
-          <Text maxWidth={3.5} fontSize={0.13} color="#cccccc" anchorX="left" anchorY="top" position={[-1.5, 0.5, 0]} lineHeight={1.6}>
-            BS Industrial Engineering{'\n'}VP for Internal Affairs 2024-2025{'\n'}Scholar at DataCamp
-          </Text>
-        </group>
-      </group>
-
-      {/* Right Icons */}
-      <group position={[2.5, 0, 0]}>
-        <Text position={[0, 2.5, 0]} fontSize={0.8} color="#6366f1" font="/Postertoaster.woff" anchorX="center">TECHNICAL SKILLS</Text>
-        
-        <group position={[-0.5, 0.5, 0]}>
-            {/* ROW 1 */}
-            <SkillIcon groupY={yOffset} position={[-1.2, 1, 0]} color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/ps.svg" />
-            <SkillIcon groupY={yOffset} position={[-0.4, 1, 0]} color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/2ef132951649eec0e0378043636c1d3137cbde9c/svg/ai.svg" />
-            <SkillIcon groupY={yOffset} position={[0.4, 1, 0]}  color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/ae.svg" />
-            <SkillIcon groupY={yOffset} position={[1.2, 1, 0]}  color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/pr.svg" />
-
-            {/* ROW 2 */}
-            <SkillIcon groupY={yOffset} position={[-1.2, 0, 0]} color={PINK} scaleAdjustment={0.85} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unrealengine/unrealengine-original.svg" />
-            <SkillIcon groupY={yOffset} position={[-0.4, 0, 0]} color={PINK} scaleAdjustment={0.85} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/blender/blender-original.svg" />
-            <SkillIcon groupY={yOffset} position={[0.4, 0, 0]}  color={NATIVE} scaleAdjustment={0.6} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/canva/canva-original.svg" />
-            <SkillIcon groupY={yOffset} position={[1.2, 0, 0]}  color={NATIVE} scaleAdjustment={0.6} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg" />
-
-            {/* ROW 3 */}
-            <SkillIcon groupY={yOffset} position={[-1.2, -1, 0]} color={PINK} scaleAdjustment={4.0} url="https://cdn.simpleicons.org/notion/white" />
-            <SkillIcon groupY={yOffset} position={[-0.4, -1, 0]} color={NATIVE} scaleAdjustment={0.7} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg" />
-            <SkillIcon groupY={yOffset} position={[0.4, -1, 0]}  color={PINK} scaleAdjustment={4.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/2ef132951649eec0e0378043636c1d3137cbde9c/svg/n8n.svg" />
-            <SkillIcon groupY={yOffset} position={[1.2, -1, 0]}  color={PINK} scaleAdjustment={4.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/midjourney.svg" />
-        </group>
-      </group>
-    </group>
-  )
-}
-
-// --- HELPER: SKILL ICON (WITH PROXIMITY LOGIC) ---
-function SkillIcon({ position, url, color, scaleAdjustment = 1.0, groupY }) {
-    const ref = useRef()
-    const [hovered, setHover] = useState(false)
-    const svgProps = color ? { fillMaterial: { color: color } } : {};
-    
-    // Remember initial local position
-    const initialPos = useMemo(() => new THREE.Vector3(...position), [position])
-    const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), [])
-    const tempVec = useMemo(() => new THREE.Vector3(), [])
-
-    useFrame((state) => {
-        if (!ref.current) return
-
-        // 1. Get Mouse Position in World Space (Z=0)
-        // Since camera moves, this returns the point on the Z=0 plane the mouse is hovering over
-        state.raycaster.ray.intersectPlane(plane, tempVec)
-
-        // 2. Adjust for the Section's Y-Offset
-        // The mouse coordinate is World Space (e.g. Y = -20).
-        // The icon is inside a group at Y = -20. Its local position is Y = 1.
-        // To compare them, we shift the mouse point into the icon's local space.
-        const localMouseY = tempVec.y - groupY 
-        const localMouseX = tempVec.x - 2.0 // Adjust for the Right Side Group offset (approx x=2 or 2.5)
-        
-        // Note: The parent group is at x=2.5 in ThirdSection. 
-        // We need to be precise. 
-        // Let's rely on vector distance instead of guessing offsets?
-        // Actually, simpler math: Distance calculation based on World Position vs World Position.
-        
-        // RE-CALCULATION FOR ACCURACY:
-        const worldX = initialPos.x + 2 // 2.5 was the group X offset, adjusted to center roughly
-        const worldY = initialPos.y + groupY 
-        
-        // Distance from Mouse(World) to Icon(World)
-        const dx = tempVec.x - worldX
-        const dy = tempVec.y - worldY
-        const dist = Math.sqrt(dx*dx + dy*dy)
-
-        const repulsionRadius = 1.5 // Distance to start pushing
-        const forceStrength = 0.5   // How far to push
-
-        let targetX = initialPos.x
-        let targetY = initialPos.y
-
-        if (dist < repulsionRadius) {
-            // Push away
-            const angle = Math.atan2(dy, dx)
-            // Move opposite direction
-            targetX -= Math.cos(angle) * forceStrength * (1 - dist/repulsionRadius)
-            targetY -= Math.sin(angle) * forceStrength * (1 - dist/repulsionRadius)
-        }
-
-        // Smooth Lerp
-        ref.current.position.x = THREE.MathUtils.lerp(ref.current.position.x, targetX, 0.1)
-        ref.current.position.y = THREE.MathUtils.lerp(ref.current.position.y, targetY, 0.1)
-    })
-
-    return (
-      <group 
-        ref={ref}
-        position={position} 
-        onPointerOver={() => setHover(true)} 
-        onPointerOut={() => setHover(false)}
-        scale={hovered ? 1.2 : 1}
-      >
-        <Center position={[0, 0, 0]}>
-             <Svg 
-                src={url} 
-                scale={[0.004 * scaleAdjustment, 0.004 * scaleAdjustment, 0.004 * scaleAdjustment]}
-                {...svgProps}
-             />
-        </Center>
-      </group>
-    )
-}
-
-// --- DRAGGABLE IMAGE & BAND (UNCHANGED) ---
 function DraggableImage({ position, scale, url, rotation = [0, 0, 0] }) {
-    const ref = useRef()
     const groupRef = useRef()
     const [hovered, setHover] = useState(false)
     const [dragging, setDragging] = useState(false)
@@ -262,24 +294,6 @@ function DraggableImage({ position, scale, url, rotation = [0, 0, 0] }) {
         }
     })
 
-    const handlePointerDown = (e) => {
-        e.stopPropagation()
-        e.ray.intersectPlane(plane, intersectPoint.current)
-        offset.current.subVectors(intersectPoint.current, groupRef.current.position)
-        e.target.setPointerCapture(e.pointerId)
-        setDragging(true)
-    }
-
-    const handlePointerUp = (e) => {
-        e.stopPropagation()
-        e.target.releasePointerCapture(e.pointerId)
-        setDragging(false)
-    }
-
-    useEffect(() => {
-        document.body.style.cursor = dragging ? 'grabbing' : (hovered ? 'grab' : 'auto')
-    }, [hovered, dragging])
-
     return (
         <group ref={groupRef} position={position} rotation={rotation}>
             <mesh position={[0, 0, -0.01]}>
@@ -287,53 +301,53 @@ function DraggableImage({ position, scale, url, rotation = [0, 0, 0] }) {
                 <meshBasicMaterial color="#f4f4f4" side={THREE.DoubleSide} />
             </mesh>
             <Image
-                ref={ref}
                 url={url}
                 position={[0, scale * 0.1, 0.01]} 
                 scale={[scale, scale * 1.4]}
                 transparent
                 onPointerOver={() => setHover(true)}
                 onPointerOut={() => setHover(false)}
-                onPointerDown={handlePointerDown}
-                onPointerUp={handlePointerUp}
+                onPointerDown={(e) => {
+                    e.stopPropagation()
+                    e.ray.intersectPlane(plane, intersectPoint.current)
+                    offset.current.subVectors(intersectPoint.current, groupRef.current.position)
+                    e.target.setPointerCapture(e.pointerId)
+                    setDragging(true)
+                }}
+                onPointerUp={(e) => {
+                    e.stopPropagation()
+                    e.target.releasePointerCapture(e.pointerId)
+                    setDragging(false)
+                }}
             />
         </group>
     )
 }
 
+// --- SECTION 1: LANYARD BAND ---
 function Band({ maxSpeed = 50, minSpeed = 10 }) {
   const band = useRef(), fixed = useRef(), j1 = useRef(), j2 = useRef(), j3 = useRef(), card = useRef()
   const vec = new THREE.Vector3(), ang = new THREE.Vector3(), rot = new THREE.Vector3(), dir = new THREE.Vector3()
-  const segmentProps = { type: 'dynamic', canSleep: true, colliders: false, angularDamping: 2, linearDamping: 2 }
   const { nodes, materials } = useGLTF('https://raw.githubusercontent.com/khyltarras-art/id-des/refs/heads/main/Card.glb')
   const texture = useTexture('https://raw.githubusercontent.com/khyltarras-art/id-des/refs/heads/main/band.png')
   const { width, height } = useThree((state) => state.size)
   const [curve] = useState(() => new THREE.CatmullRomCurve3([new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()]))
   const [dragged, drag] = useState(false)
-  const [hovered, hover] = useState(false)
 
   useRopeJoint(fixed, j1, [[0, 0, 0], [0, 0, 0], 1])
   useRopeJoint(j1, j2, [[0, 0, 0], [0, 0, 0], 1])
   useRopeJoint(j2, j3, [[0, 0, 0], [0, 0, 0], 1])
   useSphericalJoint(j3, card, [[0, 0, 0], [0, 1.45, 0]])
 
-  useEffect(() => {
-    if (hovered) {
-      document.body.style.cursor = dragged ? 'grabbing' : 'grab'
-      return () => void (document.body.style.cursor = 'auto')
-    }
-  }, [hovered, dragged])
-
   useFrame((state, delta) => {
     if (dragged) {
       vec.set(state.pointer.x, state.pointer.y, 0.5).unproject(state.camera)
       dir.copy(vec).sub(state.camera.position).normalize()
       vec.add(dir.multiplyScalar(state.camera.position.length()))
-      ;[card, j1, j2, j3, fixed].forEach((ref) => ref.current?.wakeUp())
       card.current?.setNextKinematicTranslation({ x: vec.x - dragged.x, y: vec.y - dragged.y, z: vec.z - dragged.z })
     }
     if (fixed.current) {
-      ;[j1, j2].forEach((ref) => {
+      [j1, j2].forEach((ref) => {
         if (!ref.current.lerped) ref.current.lerped = new THREE.Vector3().copy(ref.current.translation())
         const clampedDistance = Math.max(0.1, Math.min(1, ref.current.lerped.distanceTo(ref.current.translation())))
         ref.current.lerped.lerp(ref.current.translation(), delta * (minSpeed + clampedDistance * (maxSpeed - minSpeed)))
@@ -349,29 +363,30 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
     }
   })
 
-  curve.curveType = 'chordal'
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping
 
   return (
     <>
       <group position={[0, 4, 0]}>
-        <RigidBody ref={fixed} {...segmentProps} type="fixed" />
-        <RigidBody position={[0.5, 0, 0]} ref={j1} {...segmentProps}><BallCollider args={[0.1]} /></RigidBody>
-        <RigidBody position={[1, 0, 0]} ref={j2} {...segmentProps}><BallCollider args={[0.1]} /></RigidBody>
-        <RigidBody position={[1.5, 0, 0]} ref={j3} {...segmentProps}><BallCollider args={[0.1]} /></RigidBody>
-        <RigidBody position={[2, 0, 0]} ref={card} {...segmentProps} type={dragged ? 'kinematicPosition' : 'dynamic'}>
+        <RigidBody ref={fixed} type="fixed" />
+        <RigidBody position={[0.5, 0, 0]} ref={j1} colliders={false}><BallCollider args={[0.1]} /></RigidBody>
+        <RigidBody position={[1, 0, 0]} ref={j2} colliders={false}><BallCollider args={[0.1]} /></RigidBody>
+        <RigidBody position={[1.5, 0, 0]} ref={j3} colliders={false}><BallCollider args={[0.1]} /></RigidBody>
+        <RigidBody position={[2, 0, 0]} ref={card} type={dragged ? 'kinematicPosition' : 'dynamic'}>
           <CuboidCollider args={[0.8, 1.125, 0.01]} />
-          <group
-            scale={2.25}
-            position={[0, -1.2, -0.05]}
-            onPointerOver={() => hover(true)}
-            onPointerOut={() => hover(false)}
-            onPointerUp={(e) => (e.target.releasePointerCapture(e.pointerId), drag(false))}
-            onPointerDown={(e) => (e.target.setPointerCapture(e.pointerId), drag(new THREE.Vector3().copy(e.point).sub(vec.copy(card.current.translation()))))}>
+          <group scale={2.25} position={[0, -1.2, -0.05]} 
+            onPointerDown={(e) => {
+                e.target.setPointerCapture(e.pointerId)
+                drag(new THREE.Vector3().copy(e.point).sub(vec.copy(card.current.translation())))
+            }}
+            onPointerUp={(e) => {
+                e.target.releasePointerCapture(e.pointerId)
+                drag(false)
+            }}>
             <mesh geometry={nodes.card.geometry}>
-              <meshPhysicalMaterial map={materials.base.map} map-anisotropy={16} clearcoat={1} clearcoatRoughness={0.15} roughness={0.3} metalness={0.5} />
+              <meshPhysicalMaterial map={materials.base.map} clearcoat={1} clearcoatRoughness={0.15} roughness={0.3} metalness={0.5} />
             </mesh>
-            <mesh geometry={nodes.clip.geometry} material={materials.metal} material-roughness={0.3} />
+            <mesh geometry={nodes.clip.geometry} material={materials.metal} />
             <mesh geometry={nodes.clamp.geometry} material={materials.metal} />
           </group>
         </RigidBody>
