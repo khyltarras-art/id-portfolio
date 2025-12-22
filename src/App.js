@@ -1,7 +1,8 @@
 import * as THREE from 'three'
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { Canvas, extend, useThree, useFrame } from '@react-three/fiber'
-import { useGLTF, useTexture, Environment, Lightformer, Text, Image, Float } from '@react-three/drei'
+// --- FIX: Added 'Svg' to this import line ---
+import { useGLTF, useTexture, Environment, Lightformer, Text, Image, Float, Svg } from '@react-three/drei'
 import { BallCollider, CuboidCollider, Physics, RigidBody, useRopeJoint, useSphericalJoint } from '@react-three/rapier'
 import { MeshLineGeometry, MeshLineMaterial } from 'meshline'
 
@@ -131,20 +132,16 @@ function SecondSection() {
   )
 }
 
-// --- COMPONENT: SECTION 3 (ABOUT & SKILLS) ---
+// --- COMPONENT: SECTION 3 (ABOUT & SKILLS - WITH SVG) ---
 function ThirdSection() {
   const { viewport } = useThree()
-  
-  // Position: 2 Full Screens Down
   const yOffset = -viewport.height * 2
 
   return (
     <group position={[0, yOffset, 0]}>
       
-      {/* --- LEFT SIDE: ABOUT & EDUCATION (Swapped) --- */}
-      {/* Moved from x=2.5 to x=-2.5 */}
+      {/* --- LEFT SIDE: ABOUT & EDUCATION --- */}
       <group position={[-2.5, 0, 0]}>
-        
         {/* About Me */}
         <group position={[-1, 1.2, 0]}>
           <Text fontSize={0.5} color="#fc568d" font="/Postertoaster.woff" anchorX="left" position={[-2, 1, 0]}>
@@ -164,37 +161,65 @@ function ThirdSection() {
           <Text maxWidth={4} fontSize={0.13} color="#cccccc" anchorX="left" anchorY="top" position={[-2, 0.5, 0]} lineHeight={1.6}>
             BS Industrial Engineering{'\n'}
             4 Years in VP Creatives Positions{'\n'}
-            AWS Cloud Club PUP - Motion Designer
+            AWS Cloud Club PUP - Motion Designer{'\n'}
+            Scholar at DataCamp
           </Text>
         </group>
-
       </group>
 
-      {/* --- RIGHT SIDE: TECHNICAL SKILLS (Swapped) --- */}
-      {/* Moved from x=-2.5 to x=2.5 */}
+      {/* --- RIGHT SIDE: TECHNICAL SKILLS (SVG ICONS) --- */}
       <group position={[2.5, 0, 0]}>
         <Text position={[0, 2.5, 0]} fontSize={0.8} color="#6366f1" font="/Postertoaster.woff" anchorX="center">
           TECHNICAL SKILLS
         </Text>
         
-        {/* Simple Grid of Icons */}
+        {/* SVG Icon Grid */}
         <group position={[0, 0.5, 0]}>
-            <SkillIcon position={[-1, 1, 0]} label="Ps" color="#31a8ff" />
-            <SkillIcon position={[0, 1, 0]} label="Ai" color="#ff9a00" />
-            <SkillIcon position={[1, 1, 0]} label="Ae" color="#cf96fd" />
+            {/* Row 1 */}
+            <SkillIcon 
+              position={[-1, 1, 0]} 
+              url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/photoshop/photoshop-plain.svg" 
+              color="#31a8ff" 
+            />
+            <SkillIcon 
+              position={[0, 1, 0]} 
+              url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/illustrator/illustrator-plain.svg" 
+              color="#ff9a00" 
+            />
+            <SkillIcon 
+              position={[1, 1, 0]} 
+              url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/aftereffects/aftereffects-plain.svg" 
+              color="#cf96fd" 
+            />
             
-            <SkillIcon position={[-1, -0.2, 0]} label="Pr" color="#9999ff" />
-            <SkillIcon position={[0, -0.2, 0]} label="UE" color="white" />
-            <SkillIcon position={[1, -0.2, 0]} label="Bl" color="#e87d0d" />
+            {/* Row 2 */}
+            <SkillIcon 
+              position={[-1, -0.2, 0]} 
+              url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/premierepro/premierepro-plain.svg" 
+              color="#9999ff" 
+            />
+            <SkillIcon 
+              position={[0, -0.2, 0]} 
+              url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unrealengine/unrealengine-original.svg" 
+              color="white" 
+              scaleAdjustment={0.8} 
+            />
+            <SkillIcon 
+              position={[1, -0.2, 0]} 
+              url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/blender/blender-original.svg" 
+              color="#e87d0d" 
+            />
         </group>
       </group>
     </group>
   )
 }
 
-// --- HELPER: SKILL ICON ---
-function SkillIcon({ position, label, color }) {
+// --- HELPER: SKILL ICON (SVG VERSION) ---
+function SkillIcon({ position, url, color, scaleAdjustment = 1 }) {
     const [hovered, setHover] = useState(false)
+    const baseScale = 0.005 * scaleAdjustment
+
     return (
       <group 
         position={position} 
@@ -202,19 +227,19 @@ function SkillIcon({ position, label, color }) {
         onPointerOut={() => setHover(false)}
         scale={hovered ? 1.1 : 1}
       >
-        {/* Background Box */}
         <mesh>
           <planeGeometry args={[0.8, 0.8]} />
           <meshBasicMaterial color={hovered ? '#333' : '#1a1a1a'} />
         </mesh>
-        {/* Colored Border/Underline Effect */}
+        
         <mesh position={[0, -0.38, 0.01]}>
            <planeGeometry args={[0.7, 0.05]} />
            <meshBasicMaterial color={color} />
         </mesh>
-        <Text fontSize={0.35} color={color} font="/Postertoaster.woff" position={[0,0.05,0.02]}>
-          {label}
-        </Text>
+
+        <group position={[-0.25, 0.25, 0.01]} scale={[1, -1, 1]}> 
+             <Svg src={url} scale={baseScale} />
+        </group>
       </group>
     )
   }
@@ -257,12 +282,10 @@ function DraggableImage({ position, scale, url, rotation = [0, 0, 0] }) {
 
     return (
         <group ref={groupRef} position={position} rotation={rotation}>
-            {/* Polaroid Frame */}
             <mesh position={[0, 0, -0.01]}>
                 <planeGeometry args={[scale * 1.15, scale * 1.4 * 1.25]} />
                 <meshBasicMaterial color="#f4f4f4" side={THREE.DoubleSide} />
             </mesh>
-            {/* Image */}
             <Image
                 ref={ref}
                 url={url}
