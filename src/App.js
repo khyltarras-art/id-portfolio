@@ -85,6 +85,21 @@ function FourthSection() {
   
     return (
       <group position={[0, yOffset, 0]}>
+        {/* Interrogation Spotlight */}
+        <SpotLight
+            position={[0, 4, 2]} 
+            target={lightTarget.current}
+            intensity={20}       
+            distance={10}        
+            angle={0.4}          
+            attenuation={5}      
+            anglePower={5}
+            penumbra={0.5}       
+            castShadow
+        />
+        <mesh ref={lightTarget} position={[0, -0.5, 0]} visible={false}>
+            <sphereGeometry args={[0.1]} />
+        </mesh>
 
         <Text position={[-3.5, 1, 0]} fontSize={0.3} color="#fc568d" anchorX="right" font="/Postertoaster.woff">LET'S CONNECT</Text>
         <Text position={[-3.5, 0.5, 0]} fontSize={0.3} color="#fc568d" anchorX="right" font="/Postertoaster.woff">EMAIL ME</Text>
@@ -94,7 +109,7 @@ function FourthSection() {
         <Text position={[3.5, 0.5, 0]} fontSize={0.3} color="#fc568d" anchorX="left" font="/Postertoaster.woff">VISITING</Text>
         <Text position={[3.5, 0, 0]} fontSize={0.3} color="#fc568d" anchorX="left" font="/Postertoaster.woff">SCROLL UP</Text>
 
-        <group position={[0, -0.5, 0]}>
+        <group position={[0, 0.8, 0]}>
             <Avatar url="https://raw.githubusercontent.com/khyltarras-art/id-des/main/face2.glb" /> 
         </group>
       </group>
