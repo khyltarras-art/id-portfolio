@@ -147,7 +147,8 @@ function ThirdSection() {
           <Text maxWidth={3.5} fontSize={0.13} color="#cccccc" anchorX="left" anchorY="top" position={[-1.5, 0.5, 0]} lineHeight={1.6}>
             BS Industrial Engineering{'\n'}
             VP for Internal Affairs 2024-2025{'\n'}
-            Scholar at DataCamp
+            Scholar at DataCamp{'\n'}
+            Head of Social Media University Week 2025 PUPBC
           </Text>
         </group>
       </group>
@@ -169,23 +170,23 @@ function ThirdSection() {
 
             {/* ROW 2: 3D & DESIGN (Scale reduced from 1.5/1.0 to 1.2/0.8) */}
             {/* Unreal: Reduced to 1.2 */}
-            <SkillIcon position={[-1.2, 0, 0]} color={PINK} scaleAdjustment={1.2} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unrealengine/unrealengine-original.svg" />
+            <SkillIcon position={[-1.2, 0, 0]} color={PINK} scaleAdjustment={1} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unrealengine/unrealengine-original.svg" />
             {/* Blender: Reduced to 1.2 */}
-            <SkillIcon position={[-0.4, 0, 0]} color={PINK} scaleAdjustment={1.2} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/blender/blender-original.svg" />
+            <SkillIcon position={[-0.4, 0, 0]} color={PINK} scaleAdjustment={1} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/blender/blender-original.svg" />
             {/* Canva: Reduced to 0.8 */}
-            <SkillIcon position={[0.4, 0, 0]}  color={NATIVE} scaleAdjustment={0.8} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/canva/canva-original.svg" />
+            <SkillIcon position={[0.4, 0, 0]}  color={PINK} scaleAdjustment={0.8} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/canva/canva-original.svg" />
             {/* Figma: Reduced to 0.8 */}
             <SkillIcon position={[1.2, 0, 0]}  color={NATIVE} scaleAdjustment={0.8} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg" />
 
             {/* ROW 3: MODERN TOOLS (Google Cloud reduced, others kept large) */}
             {/* Notion: Kept at 3.0 */}
-            <SkillIcon position={[-1.2, -1, 0]} color={PINK} scaleAdjustment={3.0} url="https://cdn.simpleicons.org/notion/white" />
+            <SkillIcon position={[-1.2, -1, 0]} color={PINK} scaleAdjustment={4.0} url="https://cdn.simpleicons.org/notion/white" />
             {/* Google Cloud: Reduced from 1.1 to 0.9 */}
             <SkillIcon position={[-0.4, -1, 0]} color={NATIVE} scaleAdjustment={0.9} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg" />
             {/* Ollama: Kept at 3.0 */}
-            <SkillIcon position={[0.4, -1, 0]}  color={PINK} scaleAdjustment={3.0} url="https://cdn.simpleicons.org/ollama/white" />
+            <SkillIcon position={[0.4, -1, 0]}  color={PINK} scaleAdjustment={4.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/2ef132951649eec0e0378043636c1d3137cbde9c/svg/n8n.svg" />
             {/* Midjourney: Kept at 3.0 */}
-            <SkillIcon position={[1.2, -1, 0]}  color={PINK} scaleAdjustment={3.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/midjourney.svg" />
+            <SkillIcon position={[1.2, -1, 0]}  color={PINK} scaleAdjustment={4.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/midjourney.svg" />
         </group>
       </group>
     </group>
