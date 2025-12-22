@@ -81,12 +81,27 @@ function CameraScrollRig() {
   return null
 }
 
-// --- SECTION 2 COMPONENT ---
+// --- SECTION 2 COMPONENT WITH PARALLAX ---
 function SecondSection() {
-  const { viewport } = useThree()
+  const { viewport, mouse } = useThree()
+  const textRef = useRef()
   
   // Position it one full screen down
   const yOffset = -viewport.height
+
+  // Smoothly move the text based on mouse position
+  useFrame((state, delta) => {
+    if (textRef.current) {
+      // Move opposite to mouse (x / 20 means it moves 1/20th the speed of mouse)
+      // We start from the base position [0, 0, -5]
+      const targetX = (state.mouse.x * viewport.width) / -20
+      const targetY = (state.mouse.y * viewport.height) / -20
+      
+      // Lerp for smoothness
+      textRef.current.position.x = THREE.MathUtils.lerp(textRef.current.position.x, targetX, delta * 2)
+      textRef.current.position.y = THREE.MathUtils.lerp(textRef.current.position.y, targetY, delta * 2)
+    }
+  })
 
   const images = [
     "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/1.jpg",
@@ -99,18 +114,21 @@ function SecondSection() {
   return (
     <group position={[0, yOffset, 0]}>
       
-      {/* Title - MATCHING "PORTFOLIO" STYLE */}
-      {/* Positioned at Z=-5 (behind), centered, same font size */}
-      <Text 
-        position={[0, 0, -5]} 
-        fontSize={4.5} 
-        color="white" 
-        font="/Postertoaster.woff" 
-        anchorX="center" 
-        anchorY="middle"
-      >
-        KHYL
-      </Text>
+      {/* Title with Parallax Ref */}
+      {/* Note: We removed the hardcoded position={[0,0,-5]} here because useFrame controls X/Y now. */}
+      {/* We set initial Z in the useFrame or directly on the mesh if needed, but easier to wrap or offset. */}
+      
+      <group position={[0, 0, -5]} ref={textRef}>
+        <Text 
+          fontSize={4.5} 
+          color="white" 
+          font="/Postertoaster.woff" 
+          anchorX="center" 
+          anchorY="middle"
+        >
+          KHYL
+        </Text>
+      </group>
 
       {/* Floating Images */}
       <Float speed={2} rotationIntensity={0.1} floatIntensity={0.2}>
