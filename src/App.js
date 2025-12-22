@@ -118,7 +118,7 @@ function FourthSection() {
 
 function Avatar({ url }) {
     const pivotRef = useRef()
-    const targetVec = useRef(new THREE.Vector3(0, 0, 20)) 
+    const targetVec = useRef(new THREE.Vector3(0, 1, 20)) 
     const { viewport, mouse } = useThree()
     const gltf = useGLTF(url)
   
