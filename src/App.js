@@ -93,7 +93,7 @@ function SecondSection() {
     "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/2.png",
     "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/3.png",
     "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/4.jpg",
-    "https://images.unsplash.com/photo-1602212096437-d0af1ce0553e?q=80&w=2671&auto=format&fit=crop"
+    "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/5.png"
   ]
 
   return (
