@@ -109,7 +109,7 @@ function FourthSection() {
         <Text position={[3.5, 0.5, 0]} fontSize={0.3} color="#fc568d" anchorX="left" font="/Postertoaster.woff">VISITING</Text>
         <Text position={[3.5, 0, 0]} fontSize={0.3} color="#fc568d" anchorX="left" font="/Postertoaster.woff">SCROLL UP</Text>
 
-        <group position={[0, 1, 0]}>
+        <group position={[0, -0.5, 0]}>
             <Avatar url="https://raw.githubusercontent.com/khyltarras-art/id-des/main/face2.glb" /> 
         </group>
       </group>
