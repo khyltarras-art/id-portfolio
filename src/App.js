@@ -4,7 +4,8 @@ import { Canvas, extend, useThree, useFrame } from '@react-three/fiber'
 import { useGLTF, useTexture, Environment, Lightformer, Text, Image, Float, Svg, Center, Html } from '@react-three/drei'
 import { BallCollider, CuboidCollider, Physics, RigidBody, useRopeJoint, useSphericalJoint } from '@react-three/rapier'
 import { MeshLineGeometry, MeshLineMaterial } from 'meshline'
-import { motion } from 'framer-motion'
+// 1. ADDED AnimatePresence HERE
+import { motion, AnimatePresence } from 'framer-motion'
 
 extend({ MeshLineGeometry, MeshLineMaterial })
 
@@ -18,7 +19,7 @@ export default function App() {
   return (
     <div style={{ height: '400vh', width: '100%', backgroundColor: '#1e1d1d' }}>
       
-      {/* 1. DEFINE THE FONT FACE HERE */}
+      {/* GLOBAL FONTS (Backups) */}
       <style>{`
         @font-face {
           font-family: 'Postertoaster';
@@ -30,7 +31,6 @@ export default function App() {
         <Canvas camera={{ position: [0, 0, 15], fov: 25 }} shadows>
           
           <CameraScrollRig />
-          {/* Lowered ambient light slightly to let the grid glow pop */}
           <ambientLight intensity={0.1} />
           <spotLight position={[0, 5, 10]} intensity={1} angle={0.3} penumbra={1} />
 
@@ -46,8 +46,8 @@ export default function App() {
           </Text>
           <Text position={[0, -3, 0.1]} fontSize={0.5} color="#6366f1" anchorX="center" anchorY="middle" font="/Postertoaster.woff">
             Motion Graphic Designer
-             </Text>
-            <Text position={[0, -3, -10]} fontSize={0.5} color="#6366f1" anchorX="center" anchorY="middle" font="/Postertoaster.woff">
+          </Text>
+          <Text position={[0, -3, -10]} fontSize={0.5} color="#6366f1" anchorX="center" anchorY="middle" font="/Postertoaster.woff">
             Khyl Arsi Tarras
           </Text>
 
@@ -70,6 +70,181 @@ export default function App() {
       </div>
     </div>
   )
+}
+
+// --- NEW COMPONENT: ScrambleText ---
+const ScrambleText = ({ text }) => {
+    const [displayText, setDisplayText] = useState(text)
+    const chars = "abcdefghijklmnopqrstuvwxyz"
+    const intervalRef = useRef(null)
+
+    useEffect(() => {
+        let iteration = 0
+        clearInterval(intervalRef.current)
+
+        intervalRef.current = setInterval(() => {
+            setDisplayText(prev => 
+                text
+                .split("")
+                .map((letter, index) => {
+                    if (index < iteration) {
+                        return text[index]
+                    }
+                    return chars[Math.floor(Math.random() * chars.length)]
+                })
+                .join("")
+            )
+
+            if (iteration >= text.length) {
+                clearInterval(intervalRef.current)
+            }
+            iteration += 1 / 3
+        }, 8)
+
+        return () => clearInterval(intervalRef.current)
+    }, [text])
+
+    return (
+        <>
+            <style>{`
+                @font-face {
+                    font-family: 'FragmentFont';
+                    src: url('/fragment.ttf') format('truetype');
+                }
+            `}</style>
+            <div style={{
+                fontFamily: "'FragmentFont', sans-serif",
+                color: '#6366f1', 
+                fontSize: '0.3rem',
+                letterSpacing: '0.2em',
+                whiteSpace: 'nowrap',
+                textShadow: '0px 0px 5px rgba(0,0,0,0.5)'
+            }}>
+                {displayText}
+            </div>
+        </>
+    )
+}
+
+// --- UPDATED COMPONENT: EmailRig ---
+function EmailRig({ position, email }) {
+    const [hovered, setHover] = useState(false)
+    const [copied, setCopied] = useState(false)
+
+    const handleCopy = (e) => {
+        e.preventDefault() // Prevent navigation if href exists
+        navigator.clipboard.writeText(email)
+        setCopied(true)
+        
+        // Hide the "Copied" message after 2 seconds
+        setTimeout(() => {
+            setCopied(false)
+        }, 2000)
+    }
+    
+    return (
+        <group position={position}>
+            {/* 1. SCRAMBLE TEXT (Hover) */}
+            {hovered && !copied && (
+                <Html position={[0.4, 0.25, 0]} transform center style={{ pointerEvents: 'none' }}>
+                    <ScrambleText text={email} />
+                </Html>
+            )}
+
+            {/* 2. COPIED ANIMATION (Click) */}
+            {/* Using AnimatePresence to allow exit animations */}
+            <Html position={[-1, 0.03, 0]} transform center style={{ pointerEvents: 'none', width: '300px', display: 'flex', justifyContent: 'center' }}>
+                <AnimatePresence>
+                    {copied && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 100, scale: 0.15 }}
+                            animate={{ opacity: 1, y: 0, scale: 0.2 }}
+                            exit={{ opacity: 0, y: -100, scale: 0.15 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                            style={{
+                                background: 'rgba(252, 86, 141, 0.85)', // Your pink theme color
+                                backdropFilter: 'blur(8px)',
+                                padding: '10px 20px',
+                                borderRadius: '25px',
+                                color: 'white',
+                                fontFamily: "'fragment.ttf', sans-serif",
+                                fontSize: '1.5rem',
+                                boxShadow: '0 4px 15px rgba(252, 86, 141, 0.4)',
+                                border: '1px solid rgba(255, 255, 255, 0.3)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                whiteSpace: 'nowrap'
+                            }}
+                        >
+                            <span> Copied! </span>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </Html>
+
+            {/* 3. THE BUTTON */}
+            <FlipLink 
+                position={[0, 0, 0]} 
+                href="#" // Use # so it's still clickable
+                onClick={handleCopy}
+                onMouseEnter={() => setHover(true)}
+                onMouseLeave={() => setHover(false)}
+            >
+                EMAIL ME
+            </FlipLink>
+        </group>
+    )
+}
+
+// --- SECTION 4 ---
+function FourthSection() {
+    const { viewport } = useThree()
+    const yOffset = -viewport.height * 3
+
+    const images = [
+        "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/1.jpg", 
+        "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/2.png", 
+        "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/3.png", 
+        "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/4.jpg", 
+        "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/6.jpg", 
+        "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/1.jpg"  
+      ]
+  
+    return (
+      <group position={[0, yOffset, 0]}>
+        
+        {/* LINKS */}
+        <FlipLink position={[-2, 3, 0]} href="#">Scroll Up</FlipLink>
+        
+        <EmailRig position={[-2, 3.5, 0]} email="khyltarras@gmail.com" />
+        
+        <FlipLink position={[-0.5, 3.5, 0]} href="https://www.linkedin.com/in/khyl-arsi-tarras-04359117b/">LinkedIn</FlipLink>
+  
+        <FlipLink position={[1, 3.5, 0]} href="https://www.instagram.com/khyl.aep/">INSTAGRAM</FlipLink>
+        <FlipLink position={[2.5, 3.5, 0]} href="behance.net/gallery/185938111/Khyl-Tarras-Portfolio">Behance</FlipLink>
+        <FlipLink position={[2, 3, 0]} href="https://khyl.my.canva.site/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Canva</FlipLink>
+  
+        {/* AVATAR CENTER */}
+        <group position={[0, 0.8, -3]}>
+            <Avatar url="https://raw.githubusercontent.com/khyltarras-art/id-des/main/face2.glb" /> 
+        </group>
+
+        {/* --- POLAROIDS --- */}
+        <Float speed={4} rotationIntensity={0.1} floatIntensity={0.2}>
+            {/* Left Stack */}
+            <DraggableImage position={[-5, 3.2, 0.5]} scale={1.6} url={images[0]} rotation={[0, 0, -0.1]} />
+            <DraggableImage position={[-3.5, 1.8, 0.7]} scale={1.8} url={images[1]} rotation={[0, 0, 0.15]} />
+            <DraggableImage position={[-4.8, 0.0, 0.6]} scale={1.5} url={images[2]} rotation={[0, 0, -0.05]} />
+
+            {/* Right Stack */}
+            <DraggableImage position={[4.5, 3.0, 0.5]} scale={1.6} url={images[3]} rotation={[0, 0, 0.1]} />
+            <DraggableImage position={[3.2, 1.6, 0.8]} scale={1.8} url={images[4]} rotation={[0, 0, -0.2]} />
+            <DraggableImage position={[5.0, 0.2, 0.6]} scale={1.5} url={images[5]} rotation={[0, 0, 0.05]} />
+        </Float>
+
+      </group>
+    )
 }
 
 // --- UPDATED MOVING GRID COMPONENT ---
@@ -112,11 +287,8 @@ function MovingGrid() {
 
             void main() {
                float gridDensity = 100.0;
-               
-               // --- SETTINGS ADJUSTED HERE ---
-               float speed = 0.05;       // SLOWER
-               float thickness = 0.025;  // THICKER
-               // -----------------------------
+               float speed = 0.05;       
+               float thickness = 0.025;  
 
                vec2 animatedUv = vUv + vec2(0.0, uTime * speed);
 
@@ -125,13 +297,9 @@ function MovingGrid() {
                float gridPattern = 1.0 - min(line, 1.0);
 
                float dist = distance(vUv, vec2(0.5));
-               
-               // --- FADE ADJUSTED HERE ---
                float fade = 1.0 - smoothstep(0.2, 0.7, dist);
 
                vec3 finalColor = uColor * gridPattern;
-               
-               // --- OPACITY ADJUSTED HERE ---
                gl_FragColor = vec4(finalColor, gridPattern * fade * 0.9);
             }
           `}
@@ -163,54 +331,68 @@ function CameraScrollRig() {
   return null
 }
 
-// --- SECTION 4 ---
-function FourthSection() {
-    const { viewport } = useThree()
-    const yOffset = -viewport.height * 3
+// --- UPDATED FLIP LINK COMPONENT ---
+const DURATION = 0.25;
+const STAGGER = 0.025;
 
-    // Placeholder images
-    const images = [
-        "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/1.jpg", 
-        "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/2.png", 
-        "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/3.png", 
-        "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/4.jpg", 
-        "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/6.jpg", 
-        "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/1.jpg"  
-      ]
-  
-    return (
-      <group position={[0, yOffset, 0]}>
-        
-        {/* LINKS */}
-        <FlipLink position={[-2, 3, 0]} href="#">Scroll Up</FlipLink>
-        <FlipLink position={[-2, 3.5, 0]} href="mailto:khyltarras@gmail.com">EMAIL ME</FlipLink>
-        <FlipLink position={[-0.5, 3.5, 0]} href="https://www.linkedin.com/in/khyl-arsi-tarras-04359117b/">LinkedIn</FlipLink>
-  
-        <FlipLink position={[1, 3.5, 0]} href="https://www.instagram.com/khyl.aep/">INSTAGRAM</FlipLink>
-        <FlipLink position={[2.5, 3.5, 0]} href="behance.net/gallery/185938111/Khyl-Tarras-Portfolio">Behance</FlipLink>
-        <FlipLink position={[2, 3, 0]} href="https://khyl.my.canva.site/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Canva</FlipLink>
-  
-        {/* AVATAR CENTER */}
-        <group position={[0, 0.8, -3]}>
-            <Avatar url="https://raw.githubusercontent.com/khyltarras-art/id-des/main/face2.glb" /> 
-        </group>
-
-        {/* --- POLAROIDS --- */}
-        <Float speed={4} rotationIntensity={0.1} floatIntensity={0.2}>
-            {/* Left Stack */}
-            <DraggableImage position={[-5, 3.2, 0.5]} scale={1.6} url={images[0]} rotation={[0, 0, -0.1]} />
-            <DraggableImage position={[-3.5, 1.8, 0.7]} scale={1.8} url={images[1]} rotation={[0, 0, 0.15]} />
-            <DraggableImage position={[-4.8, 0.0, 0.6]} scale={1.5} url={images[2]} rotation={[0, 0, -0.05]} />
-
-            {/* Right Stack */}
-            <DraggableImage position={[4.5, 3.0, 0.5]} scale={1.6} url={images[3]} rotation={[0, 0, 0.1]} />
-            <DraggableImage position={[3.2, 1.6, 0.8]} scale={1.8} url={images[4]} rotation={[0, 0, -0.2]} />
-            <DraggableImage position={[5.0, 0.2, 0.6]} scale={1.5} url={images[5]} rotation={[0, 0, 0.05]} />
-        </Float>
-
-      </group>
-    )
-}
+const FlipLink = ({ children, href, onClick, position, fontSize = '4rem', onMouseEnter, onMouseLeave }) => {
+  return (
+    <Html
+      transform
+      scale={0.21}
+      position={position}
+      style={{ pointerEvents: 'none' }}
+    >
+      <motion.a
+        initial="initial"
+        whileHover="hovered"
+        href={href}
+        onClick={onClick}
+        onMouseEnter={onMouseEnter} 
+        onMouseLeave={onMouseLeave} 
+        style={{
+          display: 'block',
+          position: 'relative',
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
+          color: '#fc568d',
+          fontFamily: "'Postertoaster', sans-serif",
+          fontWeight: 100,
+          fontSize: fontSize,
+          lineHeight: 0.85,
+          textDecoration: 'none',
+          cursor: 'pointer',
+          pointerEvents: 'auto'
+        }}
+      >
+        <div style={{ position: 'relative' }}>
+          {children.split("").map((l, i) => (
+            <motion.span
+              variants={{ initial: { y: 0 }, hovered: { y: "-100%" } }}
+              transition={{ duration: DURATION, ease: "easeInOut", delay: STAGGER * i }}
+              style={{ display: 'inline-block' }}
+              key={i}
+            >
+              {l === " " ? "\u00A0" : l}
+            </motion.span>
+          ))}
+        </div>
+        <div style={{ position: 'absolute', inset: 0 }}>
+          {children.split("").map((l, i) => (
+            <motion.span
+              variants={{ initial: { y: "100%" }, hovered: { y: 0 } }}
+              transition={{ duration: DURATION, ease: "easeInOut", delay: STAGGER * i }}
+              style={{ display: 'inline-block' }}
+              key={i}
+            >
+              {l === " " ? "\u00A0" : l}
+            </motion.span>
+          ))}
+        </div>
+      </motion.a>
+    </Html>
+  );
+};
 
 // --- DRAGGABLE IMAGE COMPONENT ---
 function DraggableImage({ position, scale, url, rotation = [0, 0, 0] }) {
@@ -275,68 +457,6 @@ function DraggableImage({ position, scale, url, rotation = [0, 0, 0] }) {
     )
 }
 
-// --- FLIP LINK COMPONENT ---
-const DURATION = 0.25;
-const STAGGER = 0.025;
-
-const FlipLink = ({ children, href, onClick, position, fontSize = '4rem' }) => {
-  return (
-    <Html
-      transform
-      scale={0.21}
-      position={position}
-      style={{ pointerEvents: 'none' }}
-    >
-      <motion.a
-        initial="initial"
-        whileHover="hovered"
-        href={href}
-        onClick={onClick}
-        style={{
-          display: 'block',
-          position: 'relative',
-          overflow: 'hidden',
-          whiteSpace: 'nowrap',
-          color: '#fc568d',
-          // 2. APPLY THE CUSTOM FONT HERE
-          fontFamily: "'Postertoaster', sans-serif",
-          fontWeight: 100,
-          fontSize: fontSize,
-          lineHeight: 0.85,
-          textDecoration: 'none',
-          cursor: 'pointer',
-          pointerEvents: 'auto'
-        }}
-      >
-        <div style={{ position: 'relative' }}>
-          {children.split("").map((l, i) => (
-            <motion.span
-              variants={{ initial: { y: 0 }, hovered: { y: "-100%" } }}
-              transition={{ duration: DURATION, ease: "easeInOut", delay: STAGGER * i }}
-              style={{ display: 'inline-block' }}
-              key={i}
-            >
-              {l === " " ? "\u00A0" : l}
-            </motion.span>
-          ))}
-        </div>
-        <div style={{ position: 'absolute', inset: 0 }}>
-          {children.split("").map((l, i) => (
-            <motion.span
-              variants={{ initial: { y: "100%" }, hovered: { y: 0 } }}
-              transition={{ duration: DURATION, ease: "easeInOut", delay: STAGGER * i }}
-              style={{ display: 'inline-block' }}
-              key={i}
-            >
-              {l === " " ? "\u00A0" : l}
-            </motion.span>
-          ))}
-        </div>
-      </motion.a>
-    </Html>
-  );
-};
-
 // --- AVATAR COMPONENT ---
 function Avatar({ url }) {
     const pivotRef = useRef()
@@ -391,19 +511,23 @@ function ThirdSection() {
       <group position={[-3, 0, 0]}>
         <group position={[0, 1.2, 0]}>
           <Text fontSize={0.5} color="#fc568d" font="/Postertoaster.woff" anchorX="left" position={[-1.5, 1, 0]}>ABOUT ME</Text>
-          <Text maxWidth={3.5} fontSize={0.13} color="#cccccc" anchorX="left" anchorY="top" position={[-1.5, 0.5, 0]} lineHeight={1.6}>
-            I am an Industrial Engineering student based in Laguna. I bridge the gap between technical logic and creative artistry.
+          <Text maxWidth={3.5} fontSize={0.13} color="#cccccc" font="/fragment.ttf" anchorX="left" anchorY="top" position={[-1.5, 0.5, 0]} lineHeight={1.6}>
+            I’m Khyl Tarras, an independent designer & industrial engineer shaping brands that stand out and drive meaningful growth.
+
+Originally from General Santos, Philippines and now based in Laguna, Philippines I’m passionate about bringing ambitious visions to life and partnering with founders and brands who refuse to settle for average.
+
+Specialising in branding, user centered design, and Motion Graphics.
           </Text>
         </group>
         <group position={[0, -1.8, 0]}>
           <Text fontSize={0.5} color="#fc568d" font="/Postertoaster.woff" anchorX="left" position={[-1.5, 1, 0]}>EDUCATION</Text>
-          <Text maxWidth={3.5} fontSize={0.13} color="#cccccc" anchorX="left" anchorY="top" position={[-1.5, 0.5, 0]} lineHeight={1.6}>
+          <Text maxWidth={3.5} fontSize={0.13} color="#cccccc" font="/fragment.ttf" anchorX="left" anchorY="top" position={[-1.5, 0.5, 0]} lineHeight={1.6}>
             BS Industrial Engineering{'\n'}4 Years Vice President for Creatives{'\n'}Scholar at DataCamp{'\n'}AWS Cloud Club PUP - Motion Designer{'\n'}Head of Social Media University WEEK PUPBC
           </Text>
         </group>
       </group>
 
-      <group position={[2.5, 0, 0]}>
+      <group position={[3, 0, 0]}>
         <Text position={[0, 2.5, 0]} fontSize={0.8} color="#6366f1" font="/Postertoaster.woff" anchorX="center">TECHNICAL SKILLS</Text>
         <group position={[-0.5, 0.5, 0]}>
             <SkillIcon groupY={yOffset} position={[-1.2, 1, 0]} color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/ps.svg" />
