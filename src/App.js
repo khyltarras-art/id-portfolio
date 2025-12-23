@@ -223,7 +223,7 @@ function FourthSection() {
   
         <FlipLink position={[1, 3.5, 0]} href="https://www.instagram.com/khyl.aep/">INSTAGRAM</FlipLink>
         <FlipLink position={[2.5, 3.5, 0]} href="behance.net/gallery/185938111/Khyl-Tarras-Portfolio">Behance</FlipLink>
-        <FlipLink position={[2, 3, 0]} href="https://khyl.my.canva.site/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Canva</FlipLink>
+        <FlipLink position={[2.35, 3.2, 0]} href="https://khyl.my.canva.site/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Canva</FlipLink>
   
         {/* AVATAR CENTER */}
         <group position={[0, 0.8, -3]}>
@@ -508,7 +508,7 @@ function ThirdSection() {
 
   return (
     <group position={[0, yOffset, 0]}>
-      <group position={[-3, 0, 0]}>
+      <group position={[-3, 1, 0]}>
         <group position={[0, 1.2, 0]}>
           <Text fontSize={0.5} color="#fc568d" font="/Postertoaster.woff" anchorX="left" position={[-1.5, 1, 0]}>ABOUT ME</Text>
           <Text maxWidth={3.5} fontSize={0.13} color="#cccccc" font="/fragment.ttf" anchorX="left" anchorY="top" position={[-1.5, 0.5, 0]} lineHeight={1.6}>
@@ -519,10 +519,10 @@ Originally from General Santos, Philippines and now based in Laguna, Philippines
 Specialising in branding, user centered design, and Motion Graphics.
           </Text>
         </group>
-        <group position={[0, -1.8, 0]}>
+        <group position={[0, -2, 0]}>
           <Text fontSize={0.5} color="#fc568d" font="/Postertoaster.woff" anchorX="left" position={[-1.5, 1, 0]}>EDUCATION</Text>
-          <Text maxWidth={3.5} fontSize={0.13} color="#cccccc" font="/fragment.ttf" anchorX="left" anchorY="top" position={[-1.5, 0.5, 0]} lineHeight={1.6}>
-            BS Industrial Engineering{'\n'}4 Years Vice President for Creatives{'\n'}Scholar at DataCamp{'\n'}AWS Cloud Club PUP - Motion Designer{'\n'}Head of Social Media University WEEK PUPBC
+          <Text maxWidth={4} fontSize={0.13} color="#cccccc" font="/fragment.ttf" anchorX="left" anchorY="top" position={[-1.5, 0.5, 0]} lineHeight={2}>
+            BS Industrial Engineering{'\n'}4 Years Vice President for Creatives{'\n'}Scholar at DataCamp{'\n'}AWS Cloud Club PUP - Motion Designer{'\n'}Head of Social Media University Week'25 PUPBC
           </Text>
         </group>
       </group>
