@@ -18,6 +18,14 @@ export default function App() {
   return (
     <div style={{ height: '400vh', width: '100%', backgroundColor: '#1e1d1d' }}>
       
+      {/* 1. DEFINE THE FONT FACE HERE */}
+      <style>{`
+        @font-face {
+          font-family: 'Postertoaster';
+          src: url('/Postertoaster.woff') format('woff');
+        }
+      `}</style>
+
       <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh', overflow: 'hidden' }}>
         <Canvas camera={{ position: [0, 0, 15], fov: 25 }} shadows>
           
@@ -106,8 +114,8 @@ function MovingGrid() {
                float gridDensity = 100.0;
                
                // --- SETTINGS ADJUSTED HERE ---
-               float speed = 0.05;       // SLOWER (was 0.05)
-               float thickness = 0.025;  // THICKER (was 0.015)
+               float speed = 0.05;       // SLOWER
+               float thickness = 0.025;  // THICKER
                // -----------------------------
 
                vec2 animatedUv = vUv + vec2(0.0, uTime * speed);
@@ -119,13 +127,11 @@ function MovingGrid() {
                float dist = distance(vUv, vec2(0.5));
                
                // --- FADE ADJUSTED HERE ---
-               // Extended the fade radius to 0.7 so it stays visible longer
-               float fade = 1 - smoothstep(0.2, 0.7, dist);
+               float fade = 1.0 - smoothstep(0.2, 0.7, dist);
 
                vec3 finalColor = uColor * gridPattern;
                
                // --- OPACITY ADJUSTED HERE ---
-               // Increased multiplier to 0.9 for higher visibility
                gl_FragColor = vec4(finalColor, gridPattern * fade * 0.9);
             }
           `}
@@ -162,7 +168,7 @@ function FourthSection() {
     const { viewport } = useThree()
     const yOffset = -viewport.height * 3
 
-    // Placeholder images - using different ratios to test the adaptation
+    // Placeholder images
     const images = [
         "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/1.jpg", 
         "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/2.png", 
@@ -176,21 +182,21 @@ function FourthSection() {
       <group position={[0, yOffset, 0]}>
         
         {/* LINKS */}
-        <FlipLink position={[-4, 3, 0]} href="#">LET'S CONNECT</FlipLink>
-        <FlipLink position={[-4, 1.5, 0]} href="mailto:khyltarras@gmail.com">EMAIL ME</FlipLink>
-        <FlipLink position={[-4, 0.1, 0]} href="https://www.linkedin.com/in/khyl-arsi-tarras-04359117b/">LINKEDIN</FlipLink>
+        <FlipLink position={[-2, 3, 0]} href="#">Scroll Up</FlipLink>
+        <FlipLink position={[-2, 3.5, 0]} href="mailto:khyltarras@gmail.com">EMAIL ME</FlipLink>
+        <FlipLink position={[-0.5, 3.5, 0]} href="https://www.linkedin.com/in/khyl-arsi-tarras-04359117b/">LinkedIn</FlipLink>
   
-        <FlipLink position={[4, 3, 0]} href="https://www.instagram.com/khyl.aep/">INSTAGRAM</FlipLink>
-        <FlipLink position={[4, 1.5, 0]} href="behance.net/gallery/185938111/Khyl-Tarras-Portfolio">Behance</FlipLink>
-        <FlipLink position={[4, 0.1, 0]} href="https://khyl.my.canva.site/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Canva</FlipLink>
+        <FlipLink position={[1, 3.5, 0]} href="https://www.instagram.com/khyl.aep/">INSTAGRAM</FlipLink>
+        <FlipLink position={[2.5, 3.5, 0]} href="behance.net/gallery/185938111/Khyl-Tarras-Portfolio">Behance</FlipLink>
+        <FlipLink position={[2, 3, 0]} href="https://khyl.my.canva.site/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Canva</FlipLink>
   
         {/* AVATAR CENTER */}
-        <group position={[0, 0.8, 0]}>
+        <group position={[0, 0.8, -3]}>
             <Avatar url="https://raw.githubusercontent.com/khyltarras-art/id-des/main/face2.glb" /> 
         </group>
 
         {/* --- POLAROIDS --- */}
-        <Float speed={2} rotationIntensity={0.1} floatIntensity={0.2}>
+        <Float speed={4} rotationIntensity={0.1} floatIntensity={0.2}>
             {/* Left Stack */}
             <DraggableImage position={[-5, 3.2, 0.5]} scale={1.6} url={images[0]} rotation={[0, 0, -0.1]} />
             <DraggableImage position={[-3.5, 1.8, 0.7]} scale={1.8} url={images[1]} rotation={[0, 0, 0.15]} />
@@ -277,7 +283,7 @@ const FlipLink = ({ children, href, onClick, position, fontSize = '4rem' }) => {
   return (
     <Html
       transform
-      scale={0.15}
+      scale={0.21}
       position={position}
       style={{ pointerEvents: 'none' }}
     >
@@ -292,8 +298,9 @@ const FlipLink = ({ children, href, onClick, position, fontSize = '4rem' }) => {
           overflow: 'hidden',
           whiteSpace: 'nowrap',
           color: '#fc568d',
-          fontFamily: "'Poppins'",
-          fontWeight: 900,
+          // 2. APPLY THE CUSTOM FONT HERE
+          fontFamily: "'Postertoaster', sans-serif",
+          fontWeight: 100,
           fontSize: fontSize,
           lineHeight: 0.85,
           textDecoration: 'none',
@@ -405,10 +412,10 @@ function ThirdSection() {
             <SkillIcon groupY={yOffset} position={[1.2, 1, 0]}  color={PINK} scaleAdjustment={5.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/pr.svg" />
             <SkillIcon groupY={yOffset} position={[-1.2, 0, 0]} color={PINK} scaleAdjustment={0.85} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unrealengine/unrealengine-original.svg" />
             <SkillIcon groupY={yOffset} position={[-0.4, 0, 0]} color={PINK} scaleAdjustment={0.85} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/blender/blender-original.svg" />
-            <SkillIcon groupY={yOffset} position={[0.4, 0, 0]}  color={null} scaleAdjustment={0.6} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/canva/canva-original.svg" />
-            <SkillIcon groupY={yOffset} position={[1.2, 0, 0]}  color={null} scaleAdjustment={0.6} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg" />
+            <SkillIcon groupY={yOffset} position={[0.4, 0, 0]}  color={PINK} scaleAdjustment={0.6} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/svg/canva.svg" />
+            <SkillIcon groupY={yOffset} position={[1.2, 0, 0]}  color={PINK} scaleAdjustment={0.6} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg" />
             <SkillIcon groupY={yOffset} position={[-1.2, -1, 0]} color={PINK} scaleAdjustment={4.0} url="https://cdn.simpleicons.org/notion/white" />
-            <SkillIcon groupY={yOffset} position={[-0.4, -1, 0]} color={null} scaleAdjustment={0.7} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg" />
+            <SkillIcon groupY={yOffset} position={[-0.4, -1, 0]} color={PINK} scaleAdjustment={0.7} url="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg" />
             <SkillIcon groupY={yOffset} position={[0.4, -1, 0]}  color={PINK} scaleAdjustment={4.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/2ef132951649eec0e0378043636c1d3137cbde9c/svg/n8n.svg" />
             <SkillIcon groupY={yOffset} position={[1.2, -1, 0]}  color={PINK} scaleAdjustment={4.0} url="https://raw.githubusercontent.com/khyltarras-art/id-portfolio/9de9c9294c09006b69e0646a5af374c993818ab7/svg/midjourney.svg" />
         </group>
