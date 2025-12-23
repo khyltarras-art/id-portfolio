@@ -1,9 +1,10 @@
 import * as THREE from 'three'
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { Canvas, extend, useThree, useFrame } from '@react-three/fiber'
-import { useGLTF, useTexture, Environment, Lightformer, Text, Image, Float, Svg, Center, SpotLight } from '@react-three/drei'
+import { useGLTF, useTexture, Environment, Lightformer, Text, Image, Float, Svg, Center, Html } from '@react-three/drei'
 import { BallCollider, CuboidCollider, Physics, RigidBody, useRopeJoint, useSphericalJoint } from '@react-three/rapier'
 import { MeshLineGeometry, MeshLineMaterial } from 'meshline'
+import { motion } from 'framer-motion'
 
 extend({ MeshLineGeometry, MeshLineMaterial })
 
@@ -15,14 +16,18 @@ useGLTF.preload('https://raw.githubusercontent.com/khyltarras-art/id-des/main/fa
 // --- MAIN APP COMPONENT ---
 export default function App() {
   return (
-    <div style={{ height: '400vh', width: '100%', backgroundColor: '#1e1d1dff' }}>
+    <div style={{ height: '400vh', width: '100%', backgroundColor: '#1e1d1d' }}>
       
       <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh', overflow: 'hidden' }}>
         <Canvas camera={{ position: [0, 0, 15], fov: 25 }} shadows>
           
           <CameraScrollRig />
-          <ambientLight intensity={Math.PI * 0.3} />
+          {/* Lowered ambient light slightly to let the grid glow pop */}
+          <ambientLight intensity={0.1} />
           <spotLight position={[0, 5, 10]} intensity={1} angle={0.3} penumbra={1} />
+
+          {/* --- MOVING GRID BACKGROUND --- */}
+          <MovingGrid />
 
           {/* --- SECTION 1: LANYARD --- */}
           <Physics interpolate gravity={[0, -40, 0]} timeStep={1 / 60}>
@@ -31,6 +36,12 @@ export default function App() {
           <Text position={[0, -1, -6]} fontSize={4.5} color="#fc568d" anchorX="center" anchorY="middle" font="/Postertoaster.woff">
             PORTFOLIO
           </Text>
+          <Text position={[0, -3, 0.1]} fontSize={0.5} color="#6366f1" anchorX="center" anchorY="middle" font="/Postertoaster.woff">
+            Motion Graphic Designer
+             </Text>
+            <Text position={[0, -3, -10]} fontSize={0.5} color="#6366f1" anchorX="center" anchorY="middle" font="/Postertoaster.woff">
+            Khyl Arsi Tarras
+          </Text>
 
           {/* --- SECTION 2: POLAROIDS --- */}
           <SecondSection />
@@ -38,11 +49,10 @@ export default function App() {
           {/* --- SECTION 3: SKILLS --- */}
           <ThirdSection />
 
-          {/* --- SECTION 4: AVATAR --- */}
+          {/* --- SECTION 4: AVATAR & LINKS --- */}
           <FourthSection />
           
-          <Environment background blur={0.75}>
-            <color attach="background" args={['#1e1d1d']} />
+          <Environment background blur={0.5}>
             <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
             <Lightformer intensity={3} color="white" position={[-1, -1, 1]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
             <Lightformer intensity={3} color="white" position={[1, 1, 1]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
@@ -52,6 +62,76 @@ export default function App() {
       </div>
     </div>
   )
+}
+
+// --- UPDATED MOVING GRID COMPONENT ---
+function MovingGrid() {
+    const materialRef = useRef()
+    
+    useFrame((state) => {
+        if (materialRef.current) {
+            materialRef.current.uniforms.uTime.value = state.clock.elapsedTime
+        }
+    })
+
+    const uniforms = useMemo(
+      () => ({
+        uTime: { value: 0 },
+        uColor: { value: new THREE.Color('#fc568d') }, 
+      }),
+      []
+    )
+
+    return (
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -4, 0]}>
+        <planeGeometry args={[200, 200, 1, 1]} />
+        <shaderMaterial
+          ref={materialRef}
+          transparent
+          depthWrite={false} 
+          uniforms={uniforms}
+          vertexShader={`
+            varying vec2 vUv;
+            void main() {
+              vUv = uv;
+              gl_Position = projectionMatrix * modelMatrix * viewMatrix * vec4(position, 1.0);
+            }
+          `}
+          fragmentShader={`
+            varying vec2 vUv;
+            uniform float uTime;
+            uniform vec3 uColor;
+
+            void main() {
+               float gridDensity = 100.0;
+               
+               // --- SETTINGS ADJUSTED HERE ---
+               float speed = 0.05;       // SLOWER (was 0.05)
+               float thickness = 0.025;  // THICKER (was 0.015)
+               // -----------------------------
+
+               vec2 animatedUv = vUv + vec2(0.0, uTime * speed);
+
+               vec2 grid = abs(fract(animatedUv * gridDensity - 0.5) - 0.5) / thickness;
+               float line = min(grid.x, grid.y);
+               float gridPattern = 1.0 - min(line, 1.0);
+
+               float dist = distance(vUv, vec2(0.5));
+               
+               // --- FADE ADJUSTED HERE ---
+               // Extended the fade radius to 0.7 so it stays visible longer
+               float fade = 1 - smoothstep(0.2, 0.7, dist);
+
+               vec3 finalColor = uColor * gridPattern;
+               
+               // --- OPACITY ADJUSTED HERE ---
+               // Increased multiplier to 0.9 for higher visibility
+               gl_FragColor = vec4(finalColor, gridPattern * fade * 0.9);
+            }
+          `}
+        />
+      </mesh>
+    )
 }
 
 // --- CAMERA SCROLL RIG ---
@@ -77,86 +157,220 @@ function CameraScrollRig() {
   return null
 }
 
-// --- SECTION 4: AVATAR COMPONENT ---
+// --- SECTION 4 ---
 function FourthSection() {
     const { viewport } = useThree()
     const yOffset = -viewport.height * 3
-    const lightTarget = useRef()
+
+    // Placeholder images - using different ratios to test the adaptation
+    const images = [
+        "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/1.jpg", 
+        "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/2.png", 
+        "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/3.png", 
+        "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/4.jpg", 
+        "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/6.jpg", 
+        "https://raw.githubusercontent.com/khyltarras-art/id-portfolio/refs/heads/main/imgs/1.jpg"  
+      ]
   
     return (
       <group position={[0, yOffset, 0]}>
-
-
-        <Text position={[-3.5, 1, 0]} fontSize={0.3} color="#fc568d" anchorX="right" font="/Postertoaster.woff">LET'S CONNECT</Text>
-        <Text position={[-3.5, 0.5, 0]} fontSize={0.3} color="#fc568d" anchorX="right" font="/Postertoaster.woff">EMAIL ME</Text>
-        <Text position={[-3.5, 0, 0]} fontSize={0.3} color="#fc568d" anchorX="right" font="/Postertoaster.woff">LINKEDIN</Text>
-
-        <Text position={[3.5, 1, 0]} fontSize={0.3} color="#fc568d" anchorX="left" font="/Postertoaster.woff">THANKS FOR</Text>
-        <Text position={[3.5, 0.5, 0]} fontSize={0.3} color="#fc568d" anchorX="left" font="/Postertoaster.woff">VISITING</Text>
-        <Text position={[3.5, 0, 0]} fontSize={0.3} color="#fc568d" anchorX="left" font="/Postertoaster.woff">SCROLL UP</Text>
-
+        
+        {/* LINKS */}
+        <FlipLink position={[-4, 3, 0]} href="#">LET'S CONNECT</FlipLink>
+        <FlipLink position={[-4, 1.5, 0]} href="mailto:khyltarras@gmail.com">EMAIL ME</FlipLink>
+        <FlipLink position={[-4, 0.1, 0]} href="https://www.linkedin.com/in/khyl-arsi-tarras-04359117b/">LINKEDIN</FlipLink>
+  
+        <FlipLink position={[4, 3, 0]} href="https://www.instagram.com/khyl.aep/">INSTAGRAM</FlipLink>
+        <FlipLink position={[4, 1.5, 0]} href="behance.net/gallery/185938111/Khyl-Tarras-Portfolio">Behance</FlipLink>
+        <FlipLink position={[4, 0.1, 0]} href="https://khyl.my.canva.site/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Canva</FlipLink>
+  
+        {/* AVATAR CENTER */}
         <group position={[0, 0.8, 0]}>
             <Avatar url="https://raw.githubusercontent.com/khyltarras-art/id-des/main/face2.glb" /> 
         </group>
+
+        {/* --- POLAROIDS --- */}
+        <Float speed={2} rotationIntensity={0.1} floatIntensity={0.2}>
+            {/* Left Stack */}
+            <DraggableImage position={[-5, 3.2, 0.5]} scale={1.6} url={images[0]} rotation={[0, 0, -0.1]} />
+            <DraggableImage position={[-3.5, 1.8, 0.7]} scale={1.8} url={images[1]} rotation={[0, 0, 0.15]} />
+            <DraggableImage position={[-4.8, 0.0, 0.6]} scale={1.5} url={images[2]} rotation={[0, 0, -0.05]} />
+
+            {/* Right Stack */}
+            <DraggableImage position={[4.5, 3.0, 0.5]} scale={1.6} url={images[3]} rotation={[0, 0, 0.1]} />
+            <DraggableImage position={[3.2, 1.6, 0.8]} scale={1.8} url={images[4]} rotation={[0, 0, -0.2]} />
+            <DraggableImage position={[5.0, 0.2, 0.6]} scale={1.5} url={images[5]} rotation={[0, 0, 0.05]} />
+        </Float>
+
       </group>
     )
-  }
+}
 
-function Avatar({ url }) {
-  const pivotRef = useRef()
-  const targetVec = useRef(new THREE.Vector3(0, 0, 20)) // Start at neutral Z
-  const { viewport, mouse } = useThree()
-  const gltf = useGLTF(url)
+// --- DRAGGABLE IMAGE COMPONENT ---
+function DraggableImage({ position, scale, url, rotation = [0, 0, 0] }) {
+    const groupRef = useRef()
+    const [hovered, setHover] = useState(false)
+    const [dragging, setDragging] = useState(false)
+    const [aspect, setAspect] = useState(1) // Default to square
+    const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), [])
+    const offset = useRef(new THREE.Vector3())
+    const intersectPoint = useRef(new THREE.Vector3())
 
-  const EYE_Y_OFFSET = 1.1; 
-  const MODEL_SCALE = 5; 
-  const LERP_SPEED = 6;
+    useFrame((state) => {
+        if (dragging && groupRef.current) {
+            state.raycaster.ray.intersectPlane(plane, intersectPoint.current)
+            groupRef.current.position.subVectors(intersectPoint.current, offset.current)
+        }
+    })
 
-  // --- UPDATED SENSITIVITY ---
-  const LOOK_AMOUNT_X = 15.0; 
-  const LOOK_AMOUNT_Y = 15.0;   // Increased from 0.4 to allow looking down
-  const DEADZONE = 0.1; 
+    const imgHeight = scale
+    const imgWidth = scale * aspect
+    const BORDER_THICKNESS = scale * 0.06;
+    const BOTTOM_CHIN = scale * 0.25;
+    const frameWidth = imgWidth + (BORDER_THICKNESS * 2);
+    const frameHeight = imgHeight + BORDER_THICKNESS + BOTTOM_CHIN;
+    const yOffset = (-frameHeight / 2 + BOTTOM_CHIN) + (imgHeight / 2);
 
-  useFrame((state, delta) => {
-    if (!pivotRef.current) return
+    return (
+        <group 
+            ref={groupRef} 
+            position={position} 
+            rotation={rotation}
+            onPointerDown={(e) => {
+                e.stopPropagation()
+                e.ray.intersectPlane(plane, intersectPoint.current)
+                offset.current.subVectors(intersectPoint.current, groupRef.current.position)
+                e.target.setPointerCapture(e.pointerId)
+                setDragging(true)
+            }}
+            onPointerUp={(e) => {
+                e.stopPropagation()
+                e.target.releasePointerCapture(e.pointerId)
+                setDragging(false)
+            }}
+            onPointerOver={() => setHover(true)}
+            onPointerOut={() => setHover(false)}
+        >
+            <mesh position={[0, 0, -0.01]}>
+                <planeGeometry args={[frameWidth, frameHeight]} />
+                <meshBasicMaterial color="#f4f4f4" side={THREE.DoubleSide} />
+            </mesh>
+            <Image
+                url={url}
+                scale={[imgWidth, imgHeight]}
+                position={[0, yOffset, 0.01]} 
+                transparent
+                onLoad={(texture) => {
+                    const naturalAspect = texture.image.width / texture.image.height
+                    setAspect(naturalAspect)
+                }}
+            />
+        </group>
+    )
+}
 
-    // Calculate desired position based on mouse
-    // We multiply by viewport height to map mouse -1/+1 to world units
-    let desiredX = mouse.x * (viewport.width / 2) * LOOK_AMOUNT_X
-    let desiredY = mouse.y * (viewport.height / 2) * LOOK_AMOUNT_Y
+// --- FLIP LINK COMPONENT ---
+const DURATION = 0.25;
+const STAGGER = 0.025;
 
-    // Neutral zone check
-    if (Math.abs(mouse.x) < DEADZONE && Math.abs(mouse.y) < DEADZONE) {
-        desiredX = 0;
-        desiredY = 0;
-    }
-
-    // Lerp the target vector for smooth movement
-    targetVec.current.x = THREE.MathUtils.lerp(targetVec.current.x, desiredX, delta * LERP_SPEED)
-    
-    // To make it look "down" more effectively, we ensure desiredY can go negative
-    // when the mouse is at the bottom of the screen.
-    targetVec.current.y = THREE.MathUtils.lerp(targetVec.current.y, desiredY, delta * LERP_SPEED)
-    targetVec.current.z = 20 
-
-    // Look at the calculated point
-    pivotRef.current.lookAt(targetVec.current)
-  })
-
-  useEffect(() => {
-      gltf.scene.traverse((node) => {
-          if (node.isMesh) {
-              node.castShadow = true
-              node.receiveShadow = true
-          }
-      })
-  }, [gltf])
-
+const FlipLink = ({ children, href, onClick, position, fontSize = '4rem' }) => {
   return (
-      <group ref={pivotRef}>
-          <primitive object={gltf.scene} position={[0, -EYE_Y_OFFSET, 0]} scale={MODEL_SCALE} />
-      </group>
-  )
+    <Html
+      transform
+      scale={0.15}
+      position={position}
+      style={{ pointerEvents: 'none' }}
+    >
+      <motion.a
+        initial="initial"
+        whileHover="hovered"
+        href={href}
+        onClick={onClick}
+        style={{
+          display: 'block',
+          position: 'relative',
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
+          color: '#fc568d',
+          fontFamily: "'Poppins'",
+          fontWeight: 900,
+          fontSize: fontSize,
+          lineHeight: 0.85,
+          textDecoration: 'none',
+          cursor: 'pointer',
+          pointerEvents: 'auto'
+        }}
+      >
+        <div style={{ position: 'relative' }}>
+          {children.split("").map((l, i) => (
+            <motion.span
+              variants={{ initial: { y: 0 }, hovered: { y: "-100%" } }}
+              transition={{ duration: DURATION, ease: "easeInOut", delay: STAGGER * i }}
+              style={{ display: 'inline-block' }}
+              key={i}
+            >
+              {l === " " ? "\u00A0" : l}
+            </motion.span>
+          ))}
+        </div>
+        <div style={{ position: 'absolute', inset: 0 }}>
+          {children.split("").map((l, i) => (
+            <motion.span
+              variants={{ initial: { y: "100%" }, hovered: { y: 0 } }}
+              transition={{ duration: DURATION, ease: "easeInOut", delay: STAGGER * i }}
+              style={{ display: 'inline-block' }}
+              key={i}
+            >
+              {l === " " ? "\u00A0" : l}
+            </motion.span>
+          ))}
+        </div>
+      </motion.a>
+    </Html>
+  );
+};
+
+// --- AVATAR COMPONENT ---
+function Avatar({ url }) {
+    const pivotRef = useRef()
+    const targetVec = useRef(new THREE.Vector3(0, 0, 20)) 
+    const { viewport, mouse } = useThree()
+    const gltf = useGLTF(url)
+  
+    const EYE_Y_OFFSET = 1.1; 
+    const MODEL_SCALE = 5; 
+    const LERP_SPEED = 6;
+    const LOOK_AMOUNT_X = 15.0; 
+    const LOOK_AMOUNT_Y = 15.0;   
+    const DEADZONE = 0.1; 
+  
+    useFrame((state, delta) => {
+      if (!pivotRef.current) return
+      let desiredX = mouse.x * (viewport.width / 2) * LOOK_AMOUNT_X
+      let desiredY = mouse.y * (viewport.height / 2) * LOOK_AMOUNT_Y
+      if (Math.abs(mouse.x) < DEADZONE && Math.abs(mouse.y) < DEADZONE) {
+          desiredX = 0; desiredY = 0;
+      }
+      targetVec.current.x = THREE.MathUtils.lerp(targetVec.current.x, desiredX, delta * LERP_SPEED)
+      targetVec.current.y = THREE.MathUtils.lerp(targetVec.current.y, desiredY, delta * LERP_SPEED)
+      targetVec.current.z = 20 
+      pivotRef.current.lookAt(targetVec.current)
+    })
+  
+    useEffect(() => {
+        gltf.scene.traverse((node) => {
+            if (node.isMesh) {
+                node.castShadow = true
+                node.receiveShadow = true
+            }
+        })
+    }, [gltf])
+  
+    return (
+        <group ref={pivotRef}>
+            <primitive object={gltf.scene} position={[0, -EYE_Y_OFFSET, 0]} scale={MODEL_SCALE} />
+        </group>
+    )
 }
 
 // --- SECTION 3: SKILLS ---
@@ -262,59 +476,14 @@ function SecondSection() {
         <Text fontSize={4.5} color="white" font="/Postertoaster.woff" anchorX="center" anchorY="middle">KHYL</Text>
       </group>
       <Float speed={2} rotationIntensity={0.1} floatIntensity={0.2}>
-        <DraggableImage position={[-3, 0, 0]} scale={1.2} url={images[0]} rotation={[0, 0, 0.1]} />
-        <DraggableImage position={[-1.5, -1, 0.1]} scale={1} url={images[1]} rotation={[0, 0, -0.2]} />
-        <DraggableImage position={[0, 0.5, 0.2]} scale={1.4} url={images[2]} rotation={[0, 0, 0.05]} />
-        <DraggableImage position={[1.5, -0.5, 0.1]} scale={1.1} url={images[3]} rotation={[0, 0, -0.1]} />
-        <DraggableImage position={[3, 0.2, 0]} scale={1} url={images[4]} rotation={[0, 0, 0.15]} />
+        <DraggableImage position={[-3, 0, 0]} scale={1.7} url={images[0]} rotation={[0, 0, 0.1]} />
+        <DraggableImage position={[-1.5, -1, 0.1]} scale={1.4} url={images[1]} rotation={[0, 0, -0.2]} />
+        <DraggableImage position={[0, 0.5, 0.2]} scale={1.9} url={images[2]} rotation={[0, 0, 0.05]} />
+        <DraggableImage position={[1.5, -0.5, 0.1]} scale={1.6} url={images[3]} rotation={[0, 0, -0.1]} />
+        <DraggableImage position={[3, 0.2, 0]} scale={1.5} url={images[4]} rotation={[0, 0, 0.15]} />
       </Float>
     </group>
   )
-}
-
-function DraggableImage({ position, scale, url, rotation = [0, 0, 0] }) {
-    const groupRef = useRef()
-    const [hovered, setHover] = useState(false)
-    const [dragging, setDragging] = useState(false)
-    const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), [])
-    const offset = useRef(new THREE.Vector3())
-    const intersectPoint = useRef(new THREE.Vector3())
-
-    useFrame((state) => {
-        if (dragging && groupRef.current) {
-            state.raycaster.ray.intersectPlane(plane, intersectPoint.current)
-            groupRef.current.position.subVectors(intersectPoint.current, offset.current)
-        }
-    })
-
-    return (
-        <group ref={groupRef} position={position} rotation={rotation}>
-            <mesh position={[0, 0, -0.01]}>
-                <planeGeometry args={[scale * 1.15, scale * 1.4 * 1.25]} />
-                <meshBasicMaterial color="#f4f4f4" side={THREE.DoubleSide} />
-            </mesh>
-            <Image
-                url={url}
-                position={[0, scale * 0.1, 0.01]} 
-                scale={[scale, scale * 1.4]}
-                transparent
-                onPointerOver={() => setHover(true)}
-                onPointerOut={() => setHover(false)}
-                onPointerDown={(e) => {
-                    e.stopPropagation()
-                    e.ray.intersectPlane(plane, intersectPoint.current)
-                    offset.current.subVectors(intersectPoint.current, groupRef.current.position)
-                    e.target.setPointerCapture(e.pointerId)
-                    setDragging(true)
-                }}
-                onPointerUp={(e) => {
-                    e.stopPropagation()
-                    e.target.releasePointerCapture(e.pointerId)
-                    setDragging(false)
-                }}
-            />
-        </group>
-    )
 }
 
 // --- SECTION 1: LANYARD BAND ---
