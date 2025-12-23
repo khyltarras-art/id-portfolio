@@ -103,53 +103,60 @@ function FourthSection() {
   }
 
 function Avatar({ url }) {
-    const pivotRef = useRef()
-    const targetVec = useRef(new THREE.Vector3(0, 1, 20)) 
-    const { viewport, mouse } = useThree()
-    const gltf = useGLTF(url)
-  
-    const EYE_Y_OFFSET = 1.1; 
-    const MODEL_SCALE = 5; 
-    const LERP_SPEED = 6;
+  const pivotRef = useRef()
+  const targetVec = useRef(new THREE.Vector3(0, 0, 20)) // Start at neutral Z
+  const { viewport, mouse } = useThree()
+  const gltf = useGLTF(url)
 
-    // Movement Sensitivity
-    const LOOK_AMOUNT_X = 15.0; // Wide turn
-    const LOOK_AMOUNT_Y = 0.4;  // Restricted tilt
-    const DEADZONE = 0.15;      // Radius to look forward
+  const EYE_Y_OFFSET = 1.1; 
+  const MODEL_SCALE = 5; 
+  const LERP_SPEED = 6;
 
-    useFrame((state, delta) => {
-      if (!pivotRef.current) return
-  
-      let desiredX = mouse.x * (viewport.width / 2) * LOOK_AMOUNT_X
-      let desiredY = mouse.y * (viewport.height / 2) * LOOK_AMOUNT_Y
+  // --- UPDATED SENSITIVITY ---
+  const LOOK_AMOUNT_X = 15.0; 
+  const LOOK_AMOUNT_Y = 15.0;   // Increased from 0.4 to allow looking down
+  const DEADZONE = 0.1; 
 
-      // Neutral zone check
-      if (Math.abs(mouse.x) < DEADZONE && Math.abs(mouse.y) < DEADZONE) {
-          desiredX = 0;
-          desiredY = 0;
-      }
-  
-      targetVec.current.x = THREE.MathUtils.lerp(targetVec.current.x, desiredX, delta * LERP_SPEED)
-      targetVec.current.y = THREE.MathUtils.lerp(targetVec.current.y, desiredY, delta * LERP_SPEED)
-      targetVec.current.z = 20 
-  
-      pivotRef.current.lookAt(targetVec.current)
-    })
+  useFrame((state, delta) => {
+    if (!pivotRef.current) return
 
-    useEffect(() => {
-        gltf.scene.traverse((node) => {
-            if (node.isMesh) {
-                node.castShadow = true
-                node.receiveShadow = true
-            }
-        })
-    }, [gltf])
-  
-    return (
-        <group ref={pivotRef}>
-            <primitive object={gltf.scene} position={[0, -EYE_Y_OFFSET, 0]} scale={MODEL_SCALE} />
-        </group>
-    )
+    // Calculate desired position based on mouse
+    // We multiply by viewport height to map mouse -1/+1 to world units
+    let desiredX = mouse.x * (viewport.width / 2) * LOOK_AMOUNT_X
+    let desiredY = mouse.y * (viewport.height / 2) * LOOK_AMOUNT_Y
+
+    // Neutral zone check
+    if (Math.abs(mouse.x) < DEADZONE && Math.abs(mouse.y) < DEADZONE) {
+        desiredX = 0;
+        desiredY = 0;
+    }
+
+    // Lerp the target vector for smooth movement
+    targetVec.current.x = THREE.MathUtils.lerp(targetVec.current.x, desiredX, delta * LERP_SPEED)
+    
+    // To make it look "down" more effectively, we ensure desiredY can go negative
+    // when the mouse is at the bottom of the screen.
+    targetVec.current.y = THREE.MathUtils.lerp(targetVec.current.y, desiredY, delta * LERP_SPEED)
+    targetVec.current.z = 20 
+
+    // Look at the calculated point
+    pivotRef.current.lookAt(targetVec.current)
+  })
+
+  useEffect(() => {
+      gltf.scene.traverse((node) => {
+          if (node.isMesh) {
+              node.castShadow = true
+              node.receiveShadow = true
+          }
+      })
+  }, [gltf])
+
+  return (
+      <group ref={pivotRef}>
+          <primitive object={gltf.scene} position={[0, -EYE_Y_OFFSET, 0]} scale={MODEL_SCALE} />
+      </group>
+  )
 }
 
 // --- SECTION 3: SKILLS ---
